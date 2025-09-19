@@ -29,4 +29,4 @@ Make sure you have these installed:
 1. **Clone the repository**
 ```bash
    git clone https://github.com/fitrahmoef/Saintara.git
-   cd my-fullstack-app
+   cd Saintara
