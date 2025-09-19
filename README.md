@@ -1,4 +1,4 @@
-# My Full-Stack App
+# Saintara Web App
 
 A modern full-stack web Saintara application built with React, Node.js, and PostgreSQL.
 
