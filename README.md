@@ -61,14 +61,45 @@ Saintara/
 └── README.md               # This file
 ```
 
-## 🚀 Getting Started
+## 🚀 Quick Start - Choose Your Database
 
-### Prerequisites
+### Option 1: Neon PostgreSQL (⭐ Recommended - Easiest!)
+**Perfect for beginners and production. Setup in 5 minutes!**
 
-Make sure you have the following installed:
-- Node.js 18+ and npm
-- PostgreSQL 14+
-- Git
+📖 **[Follow NEON_EASY_SETUP.md](./NEON_EASY_SETUP.md)** for step-by-step guide
+
+- ✅ Instant setup (2 minutes)
+- ✅ Free tier: 3GB storage
+- ✅ Zero management
+- ✅ Perfect for Vercel
+- ✅ Just paste connection string!
+
+### Option 2: Supabase PostgreSQL
+**Good if you need additional features like Auth, Storage, etc.**
+
+📖 **[Follow SUPABASE_SETUP.md](./SUPABASE_SETUP.md)** for detailed guide
+
+- ✅ Free tier: 500MB
+- ✅ Additional features (Auth, Storage, Realtime)
+- ✅ SQL Editor built-in
+
+### Option 3: Local PostgreSQL
+**For development only**
+
+📖 **[Follow SETUP.md](./SETUP.md)** for local development setup
+
+```bash
+# Create PostgreSQL database
+psql -U postgres -c "CREATE DATABASE saintara;"
+
+# Run schema migration
+psql -U postgres -d saintara -f backend/database/schema.sql
+
+# Run seed data
+psql -U postgres -d saintara -f backend/database/seed.sql
+```
+
+## 💻 After Database Setup
 
 ### 1. Clone the Repository
 
@@ -89,19 +120,8 @@ npm install
 cp .env.example .env
 
 # Edit .env file with your database credentials
-```
-
-### 3. Database Setup
-
-```bash
-# Create PostgreSQL database
-psql -U postgres -c "CREATE DATABASE saintara;"
-
-# Run schema migration
-psql -U postgres -d saintara -f database/schema.sql
-
-# Run seed data
-psql -U postgres -d saintara -f database/seed.sql
+# For Neon: See NEON_EASY_SETUP.md
+# For Supabase: See SUPABASE_SETUP.md
 ```
 
 ### 4. Frontend Setup
