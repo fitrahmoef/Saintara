@@ -1,25 +1,55 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useAuth } from '@/contexts/AuthContext'
+import { adminAPI } from '@/lib/api'
 import { HiMenu, HiLogout, HiSearch, HiBell, HiChartBar, HiUsers, HiCalendar, HiCash, HiUserGroup, HiQuestionMarkCircle, HiCog } from 'react-icons/hi'
 
-export default function AdminDashboard() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true)
+interface DashboardStats {
+  tests_this_month: number
+  active_agents: number
+  total_users: number
+  completed_tests: number
+  monthly_sales: number
+}
 
-  const stats = [
-    { title: 'Total Tes Bulan Ini', value: '500', icon: HiChartBar, color: 'bg-yellow-100 text-saintara-yellow' },
-    { title: 'Agen Aktif', value: '321', icon: HiUsers, color: 'bg-yellow-100 text-saintara-yellow' },
-    { title: 'Agenda Talkshow', value: '12 Talkshow', icon: HiCalendar, color: 'bg-yellow-100 text-saintara-yellow' },
-    { title: 'Agenda Webinar', value: '1 Webinar', icon: HiCalendar, color: 'bg-yellow-100 text-saintara-yellow' },
-  ]
+export default function AdminDashboard() {
+  const { user, logout } = useAuth()
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true)
+  const [stats, setStats] = useState<DashboardStats | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const response = await adminAPI.getDashboardStats()
+        setStats(response.data.data.stats)
+      } catch (error) {
+        console.error('Failed to fetch dashboard stats:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchDashboardData()
+  }, [])
+
+  const statsDisplay = stats ? [
+    { title: 'Total Tes Bulan Ini', value: stats.tests_this_month.toString(), icon: HiChartBar, color: 'bg-yellow-100 text-saintara-yellow' },
+    { title: 'Agen Aktif', value: stats.active_agents.toString(), icon: HiUsers, color: 'bg-yellow-100 text-saintara-yellow' },
+    { title: 'Total Pengguna', value: stats.total_users.toString(), icon: HiUsers, color: 'bg-yellow-100 text-saintara-yellow' },
+    { title: 'Tes Selesai', value: stats.completed_tests.toString(), icon: HiChartBar, color: 'bg-yellow-100 text-saintara-yellow' },
+  ] : []
 
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
       <aside className={`${isSidebarOpen ? 'w-64' : 'w-0'} flex-shrink-0 flex flex-col bg-saintara-black text-white transition-all duration-300 overflow-hidden`}>
         <div className="h-20 flex items-center justify-center border-b border-gray-700">
-          <h1 className="text-2xl font-bold tracking-wider">SAINTARA</h1>
+          <Link href="/">
+            <h1 className="text-2xl font-bold tracking-wider cursor-pointer hover:text-saintara-yellow">SAINTARA</h1>
+          </Link>
         </div>
         <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
           <Link href="/admin/dashboard" className="flex items-center px-4 py-2.5 text-gray-900 bg-saintara-yellow rounded-lg font-semibold">
@@ -52,10 +82,13 @@ export default function AdminDashboard() {
           </Link>
         </nav>
         <div className="px-4 py-4 border-t border-gray-700">
-          <Link href="/logout" className="flex items-center px-4 py-2.5 text-gray-300 hover:bg-gray-700 hover:text-white rounded-lg">
+          <button
+            onClick={logout}
+            className="flex items-center w-full px-4 py-2.5 text-gray-300 hover:bg-gray-700 hover:text-white rounded-lg"
+          >
             <HiLogout className="w-6 h-6 mr-3" />
             Log Out
-          </Link>
+          </button>
         </div>
       </aside>
 
@@ -67,7 +100,7 @@ export default function AdminDashboard() {
             <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="mr-4 md:hidden">
               <HiMenu className="w-6 h-6" />
             </button>
-            <h2 className="text-2xl font-bold text-gray-800">Selamat Datang, Budi!</h2>
+            <h2 className="text-2xl font-bold text-gray-800">Selamat Datang, {user?.name || 'Admin'}!</h2>
           </div>
           <div className="flex items-center space-x-6">
             <div className="relative hidden md:block">
@@ -84,10 +117,12 @@ export default function AdminDashboard() {
               <HiBell className="w-6 h-6" />
             </button>
             <Link href="/admin/profile" className="flex items-center">
-              <div className="w-10 h-10 rounded-full bg-gray-300 mr-3" />
+              <div className="w-10 h-10 rounded-full bg-saintara-yellow flex items-center justify-center text-white font-bold mr-3">
+                {user?.name?.charAt(0).toUpperCase()}
+              </div>
               <div>
-                <p className="font-semibold text-gray-800">Budi Santoso</p>
-                <p className="text-xs text-gray-500">SYSTEM ADMIN</p>
+                <p className="font-semibold text-gray-800">{user?.name || 'Admin'}</p>
+                <p className="text-xs text-gray-500 uppercase">{user?.role || 'Admin'}</p>
               </div>
             </Link>
           </div>
@@ -97,19 +132,30 @@ export default function AdminDashboard() {
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-8">
           <div className="container mx-auto">
             {/* Stats Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {stats.map((stat, index) => (
-                <div key={index} className="bg-white p-6 rounded-lg shadow-md flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-500">{stat.title}</p>
-                    <p className="text-3xl font-bold text-gray-800">{stat.value}</p>
+            {isLoading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="bg-white p-6 rounded-lg shadow-md animate-pulse">
+                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                    <div className="h-8 bg-gray-200 rounded w-1/2"></div>
                   </div>
-                  <div className={`p-3 ${stat.color} rounded-full`}>
-                    <stat.icon className="w-6 h-6" />
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {statsDisplay.map((stat, index) => (
+                  <div key={index} className="bg-white p-6 rounded-lg shadow-md flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-gray-500">{stat.title}</p>
+                      <p className="text-3xl font-bold text-gray-800">{stat.value}</p>
+                    </div>
+                    <div className={`p-3 ${stat.color} rounded-full`}>
+                      <stat.icon className="w-6 h-6" />
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
 
             {/* Charts and Tables */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
