@@ -1,24 +1,17 @@
 import { Router } from 'express'
 import { authenticateToken } from '../middleware/auth.middleware'
+import { getTestQuestions, createTest, submitTest, getUserTests } from '../controllers/test.controller'
 
 const router = Router()
 
 // Public routes
-router.get('/', (req, res) => {
-  res.json({ message: 'Get all tests' })
-})
-
-router.get('/:id', (req, res) => {
-  res.json({ message: `Get test ${req.params.id}` })
-})
+router.get('/questions', getTestQuestions)
 
 // Protected routes
-router.post('/', authenticateToken, (req, res) => {
-  res.json({ message: 'Create test' })
-})
+router.use(authenticateToken)
 
-router.post('/:id/submit', authenticateToken, (req, res) => {
-  res.json({ message: `Submit test ${req.params.id}` })
-})
+router.get('/my-tests', getUserTests)
+router.post('/', createTest)
+router.post('/:id/submit', submitTest)
 
 export default router

@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import { authenticateToken, authorizeRole } from '../middleware/auth.middleware'
+import { getDashboardStats, getAllUsers, getUserDetails } from '../controllers/admin.controller'
 
 const router = Router()
 
@@ -7,16 +8,8 @@ const router = Router()
 router.use(authenticateToken)
 router.use(authorizeRole('admin'))
 
-router.get('/dashboard', (req, res) => {
-  res.json({ message: 'Admin dashboard data' })
-})
-
-router.get('/users', (req, res) => {
-  res.json({ message: 'Get all users' })
-})
-
-router.get('/stats', (req, res) => {
-  res.json({ message: 'Get statistics' })
-})
+router.get('/dashboard', getDashboardStats)
+router.get('/users', getAllUsers)
+router.get('/users/:id', getUserDetails)
 
 export default router

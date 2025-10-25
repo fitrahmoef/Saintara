@@ -1,21 +1,14 @@
 import { Router } from 'express'
 import { authenticateToken } from '../middleware/auth.middleware'
+import { getUserResults, getResultById, getLatestResult } from '../controllers/result.controller'
 
 const router = Router()
 
 // All result routes require authentication
 router.use(authenticateToken)
 
-router.get('/', (req, res) => {
-  res.json({ message: 'Get all user results' })
-})
-
-router.get('/:id', (req, res) => {
-  res.json({ message: `Get result ${req.params.id}` })
-})
-
-router.get('/:id/pdf', (req, res) => {
-  res.json({ message: `Download result ${req.params.id} as PDF` })
-})
+router.get('/', getUserResults)
+router.get('/latest', getLatestResult)
+router.get('/:id', getResultById)
 
 export default router
