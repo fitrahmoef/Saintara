@@ -1,20 +1,46 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
+import { adminAPI } from '@/lib/api'
 import { HiMenu, HiLogout, HiSearch, HiBell, HiChartBar, HiUsers, HiCalendar, HiCash, HiUserGroup, HiQuestionMarkCircle, HiCog } from 'react-icons/hi'
+
+interface DashboardStats {
+  tests_this_month: number
+  active_agents: number
+  total_users: number
+  completed_tests: number
+  monthly_sales: number
+}
 
 export default function AdminDashboard() {
   const { user, logout } = useAuth()
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
+  const [stats, setStats] = useState<DashboardStats | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
 
-  const stats = [
-    { title: 'Total Tes Bulan Ini', value: '500', icon: HiChartBar, color: 'bg-yellow-100 text-saintara-yellow' },
-    { title: 'Agen Aktif', value: '321', icon: HiUsers, color: 'bg-yellow-100 text-saintara-yellow' },
-    { title: 'Agenda Talkshow', value: '12 Talkshow', icon: HiCalendar, color: 'bg-yellow-100 text-saintara-yellow' },
-    { title: 'Agenda Webinar', value: '1 Webinar', icon: HiCalendar, color: 'bg-yellow-100 text-saintara-yellow' },
-  ]
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const response = await adminAPI.getDashboardStats()
+        setStats(response.data.data.stats)
+      } catch (error) {
+        console.error('Failed to fetch dashboard stats:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchDashboardData()
+  }, [])
+
+  const statsDisplay = stats ? [
+    { title: 'Total Tes Bulan Ini', value: stats.tests_this_month.toString(), icon: HiChartBar, color: 'bg-yellow-100 text-saintara-yellow' },
+    { title: 'Agen Aktif', value: stats.active_agents.toString(), icon: HiUsers, color: 'bg-yellow-100 text-saintara-yellow' },
+    { title: 'Total Pengguna', value: stats.total_users.toString(), icon: HiUsers, color: 'bg-yellow-100 text-saintara-yellow' },
+    { title: 'Tes Selesai', value: stats.completed_tests.toString(), icon: HiChartBar, color: 'bg-yellow-100 text-saintara-yellow' },
+  ] : []
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -106,19 +132,30 @@ export default function AdminDashboard() {
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-8">
           <div className="container mx-auto">
             {/* Stats Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {stats.map((stat, index) => (
-                <div key={index} className="bg-white p-6 rounded-lg shadow-md flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-500">{stat.title}</p>
-                    <p className="text-3xl font-bold text-gray-800">{stat.value}</p>
+            {isLoading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="bg-white p-6 rounded-lg shadow-md animate-pulse">
+                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                    <div className="h-8 bg-gray-200 rounded w-1/2"></div>
                   </div>
-                  <div className={`p-3 ${stat.color} rounded-full`}>
-                    <stat.icon className="w-6 h-6" />
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {statsDisplay.map((stat, index) => (
+                  <div key={index} className="bg-white p-6 rounded-lg shadow-md flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-gray-500">{stat.title}</p>
+                      <p className="text-3xl font-bold text-gray-800">{stat.value}</p>
+                    </div>
+                    <div className={`p-3 ${stat.color} rounded-full`}>
+                      <stat.icon className="w-6 h-6" />
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
 
             {/* Charts and Tables */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">

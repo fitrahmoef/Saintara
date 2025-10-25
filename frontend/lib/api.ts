@@ -35,32 +35,28 @@ export const authAPI = {
   getProfile: () => api.get('/auth/profile'),
 }
 
-// User API
-export const userAPI = {
-  getTests: () => api.get('/users/tests'),
-  getResults: () => api.get('/users/results'),
-}
-
 // Test API
 export const testAPI = {
-  getAllTests: () => api.get('/tests'),
-  getTest: (id: number) => api.get(`/tests/${id}`),
+  getQuestions: () => api.get('/tests/questions'),
+  getMyTests: () => api.get('/tests/my-tests'),
+  createTest: (testType = 'personal') => api.post('/tests', { test_type: testType }),
   submitTest: (id: number, answers: any[]) =>
     api.post(`/tests/${id}/submit`, { answers }),
 }
 
 // Result API
 export const resultAPI = {
-  getAllResults: () => api.get('/results'),
+  getUserResults: () => api.get('/results'),
+  getLatestResult: () => api.get('/results/latest'),
   getResult: (id: number) => api.get(`/results/${id}`),
-  downloadPDF: (id: number) => api.get(`/results/${id}/pdf`, { responseType: 'blob' }),
 }
 
 // Admin API
 export const adminAPI = {
-  getDashboard: () => api.get('/admin/dashboard'),
-  getUsers: () => api.get('/admin/users'),
-  getStats: () => api.get('/admin/stats'),
+  getDashboardStats: () => api.get('/admin/dashboard'),
+  getAllUsers: (page = 1, limit = 20, search = '') =>
+    api.get('/admin/users', { params: { page, limit, search } }),
+  getUserDetails: (id: number) => api.get(`/admin/users/${id}`),
 }
 
 export default api

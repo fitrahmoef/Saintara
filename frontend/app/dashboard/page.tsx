@@ -1,11 +1,40 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
+import { resultAPI } from '@/lib/api'
 import { HiBell, HiHome, HiUser, HiClipboardList, HiCreditCard, HiFire, HiNewspaper, HiQuestionMarkCircle, HiCog, HiDownload, HiLogout } from 'react-icons/hi'
+
+interface LatestResult {
+  id: number
+  character_type_name: string
+  character_type_code: string
+  description: string
+  strengths: string[]
+  challenges: string[]
+  communication_style: string
+}
 
 export default function UserDashboard() {
   const { user, logout } = useAuth()
+  const [latestResult, setLatestResult] = useState<LatestResult | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchLatestResult = async () => {
+      try {
+        const response = await resultAPI.getLatestResult()
+        setLatestResult(response.data.data.result)
+      } catch (error) {
+        console.error('Failed to fetch latest result:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchLatestResult()
+  }, [])
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -84,25 +113,44 @@ export default function UserDashboard() {
             {/* Left Column */}
             <div className="lg:col-span-2 space-y-8">
               {/* Character Profile Card */}
-              <div className="p-6 bg-white rounded-lg shadow-md flex flex-col md:flex-row items-center">
-                <div className="text-center md:text-left md:mr-6 flex-shrink-0 mb-4 md:mb-0">
-                  <div className="w-24 h-24 mx-auto bg-gradient-to-br from-saintara-yellow to-yellow-200 rounded-full flex items-center justify-center">
-                    <span className="text-2xl font-bold">PI</span>
+              {isLoading ? (
+                <div className="p-6 bg-white rounded-lg shadow-md animate-pulse">
+                  <div className="flex flex-col md:flex-row items-center">
+                    <div className="w-24 h-24 bg-gray-200 rounded-full mb-4 md:mb-0 md:mr-6"></div>
+                    <div className="flex-1">
+                      <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                      <div className="h-3 bg-gray-200 rounded w-full mb-1"></div>
+                      <div className="h-3 bg-gray-200 rounded w-5/6"></div>
+                    </div>
                   </div>
-                  <h4 className="text-xs text-gray-500 mt-2">PEMIKIR INTROVERT</h4>
-                  <h3 className="text-xl font-bold text-saintara-black">Karakter Alami Anda</h3>
-                  <p className="text-sm text-gray-600">Dominan Otak Kiri Atas</p>
                 </div>
-                <div className="border-t md:border-t-0 md:border-l border-gray-200 pl-6 pt-4 md:pt-0">
-                  <div className="flex items-center mb-2">
-                    <HiFire className="w-6 h-6 text-saintara-yellow mr-2" />
-                    <h4 className="font-semibold text-gray-700">Sekilas Tentang Anda</h4>
+              ) : latestResult ? (
+                <div className="p-6 bg-white rounded-lg shadow-md flex flex-col md:flex-row items-center">
+                  <div className="text-center md:text-left md:mr-6 flex-shrink-0 mb-4 md:mb-0">
+                    <div className="w-24 h-24 mx-auto bg-gradient-to-br from-saintara-yellow to-yellow-200 rounded-full flex items-center justify-center">
+                      <span className="text-2xl font-bold">{latestResult.character_type_code}</span>
+                    </div>
+                    <h4 className="text-xs text-gray-500 mt-2">{latestResult.character_type_name.toUpperCase()}</h4>
+                    <h3 className="text-xl font-bold text-saintara-black">Karakter Alami Anda</h3>
                   </div>
-                  <p className="text-sm text-gray-600">
-                    Pemikir Introvert adalah sosok yang cenderung berpikir mendalam, logis, dan analitis. Kekuatan Anda terletak pada analisis internal dan kemampuan melihat sesuatu dari berbagai sudut pandang.
-                  </p>
+                  <div className="border-t md:border-t-0 md:border-l border-gray-200 pl-6 pt-4 md:pt-0">
+                    <div className="flex items-center mb-2">
+                      <HiFire className="w-6 h-6 text-saintara-yellow mr-2" />
+                      <h4 className="font-semibold text-gray-700">Sekilas Tentang Anda</h4>
+                    </div>
+                    <p className="text-sm text-gray-600">
+                      {latestResult.description}
+                    </p>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="p-6 bg-white rounded-lg shadow-md text-center">
+                  <p className="text-gray-600">Belum ada hasil tes. Mulai tes pertama Anda!</p>
+                  <Link href="/dashboard/tests" className="mt-4 inline-block px-6 py-2 bg-saintara-yellow text-saintara-black font-semibold rounded-lg hover:bg-yellow-400">
+                    Mulai Tes
+                  </Link>
+                </div>
+              )}
 
               {/* Action Cards */}
               <div className="p-6 bg-white rounded-lg shadow-md">
@@ -169,22 +217,34 @@ export default function UserDashboard() {
               </div>
 
               {/* Strengths & Challenges */}
-              <div className="p-6 bg-white rounded-lg shadow-md">
-                <div className="mb-4">
-                  <h4 className="font-semibold text-gray-800 mb-2">Kekuatan</h4>
-                  <ul className="space-y-1 text-sm text-gray-600 list-disc list-inside">
-                    <li>Analisis Tajam</li>
-                    <li>Mandiri</li>
-                  </ul>
+              {latestResult && (
+                <div className="p-6 bg-white rounded-lg shadow-md">
+                  <div className="mb-4">
+                    <h4 className="font-semibold text-gray-800 mb-2">Kekuatan</h4>
+                    <ul className="space-y-1 text-sm text-gray-600 list-disc list-inside">
+                      {latestResult.strengths && latestResult.strengths.length > 0 ? (
+                        latestResult.strengths.map((strength, index) => (
+                          <li key={index}>{strength}</li>
+                        ))
+                      ) : (
+                        <li>Belum ada data</li>
+                      )}
+                    </ul>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-800 mb-2">Tantangan</h4>
+                    <ul className="space-y-1 text-sm text-gray-600 list-disc list-inside">
+                      {latestResult.challenges && latestResult.challenges.length > 0 ? (
+                        latestResult.challenges.map((challenge, index) => (
+                          <li key={index}>{challenge}</li>
+                        ))
+                      ) : (
+                        <li>Belum ada data</li>
+                      )}
+                    </ul>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="font-semibold text-gray-800 mb-2">Tantangan</h4>
-                  <ul className="space-y-1 text-sm text-gray-600 list-disc list-inside">
-                    <li>Cenderung Overthinking</li>
-                    <li>Sulit Beradaptasi Cepat</li>
-                  </ul>
-                </div>
-              </div>
+              )}
 
               {/* CTA Card */}
               <div className="p-6 bg-saintara-black text-white rounded-lg shadow-md text-center">
