@@ -1,15 +1,20 @@
 'use client'
 
 import Link from 'next/link'
-import { HiBell, HiHome, HiUser, HiClipboardList, HiCreditCard, HiFire, HiNewspaper, HiQuestionMarkCircle, HiCog, HiDownload } from 'react-icons/hi'
+import { useAuth } from '@/contexts/AuthContext'
+import { HiBell, HiHome, HiUser, HiClipboardList, HiCreditCard, HiFire, HiNewspaper, HiQuestionMarkCircle, HiCog, HiDownload, HiLogout } from 'react-icons/hi'
 
 export default function UserDashboard() {
+  const { user, logout } = useAuth()
+
   return (
     <div className="flex min-h-screen bg-gray-50">
       {/* Sidebar */}
       <aside className="w-64 flex-shrink-0 flex flex-col bg-saintara-black text-white">
         <div className="h-20 flex items-center justify-center border-b border-gray-700">
-          <h1 className="text-2xl font-bold tracking-wider text-white">SAINTARA</h1>
+          <Link href="/">
+            <h1 className="text-2xl font-bold tracking-wider text-white cursor-pointer hover:text-saintara-yellow">SAINTARA</h1>
+          </Link>
         </div>
 
         <nav className="flex-1 px-4 py-6 space-y-2">
@@ -46,18 +51,30 @@ export default function UserDashboard() {
             Pengaturan
           </Link>
         </nav>
+
+        <div className="px-4 py-4 border-t border-gray-700">
+          <button
+            onClick={logout}
+            className="flex items-center w-full px-4 py-2.5 text-gray-300 hover:bg-gray-700 hover:text-white rounded-lg"
+          >
+            <HiLogout className="w-6 h-6 mr-3" />
+            Logout
+          </button>
+        </div>
       </aside>
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
         <header className="h-20 flex items-center justify-between px-8 bg-white shadow-sm">
-          <h2 className="text-2xl font-bold text-gray-800">Selamat datang, Budi Susanto</h2>
+          <h2 className="text-2xl font-bold text-gray-800">Selamat datang, {user?.name || 'User'}!</h2>
           <div className="flex items-center space-x-4">
             <button type="button" className="p-2 text-gray-500 rounded-full hover:bg-gray-100 hover:text-gray-700">
               <HiBell className="w-6 h-6" />
             </button>
-            <div className="w-10 h-10 rounded-full bg-gray-300" />
+            <div className="w-10 h-10 rounded-full bg-saintara-yellow flex items-center justify-center text-white font-bold">
+              {user?.name?.charAt(0).toUpperCase()}
+            </div>
           </div>
         </header>
 

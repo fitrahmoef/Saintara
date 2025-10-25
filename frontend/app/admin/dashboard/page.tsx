@@ -2,9 +2,11 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useAuth } from '@/contexts/AuthContext'
 import { HiMenu, HiLogout, HiSearch, HiBell, HiChartBar, HiUsers, HiCalendar, HiCash, HiUserGroup, HiQuestionMarkCircle, HiCog } from 'react-icons/hi'
 
 export default function AdminDashboard() {
+  const { user, logout } = useAuth()
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
 
   const stats = [
@@ -19,7 +21,9 @@ export default function AdminDashboard() {
       {/* Sidebar */}
       <aside className={`${isSidebarOpen ? 'w-64' : 'w-0'} flex-shrink-0 flex flex-col bg-saintara-black text-white transition-all duration-300 overflow-hidden`}>
         <div className="h-20 flex items-center justify-center border-b border-gray-700">
-          <h1 className="text-2xl font-bold tracking-wider">SAINTARA</h1>
+          <Link href="/">
+            <h1 className="text-2xl font-bold tracking-wider cursor-pointer hover:text-saintara-yellow">SAINTARA</h1>
+          </Link>
         </div>
         <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
           <Link href="/admin/dashboard" className="flex items-center px-4 py-2.5 text-gray-900 bg-saintara-yellow rounded-lg font-semibold">
@@ -52,10 +56,13 @@ export default function AdminDashboard() {
           </Link>
         </nav>
         <div className="px-4 py-4 border-t border-gray-700">
-          <Link href="/logout" className="flex items-center px-4 py-2.5 text-gray-300 hover:bg-gray-700 hover:text-white rounded-lg">
+          <button
+            onClick={logout}
+            className="flex items-center w-full px-4 py-2.5 text-gray-300 hover:bg-gray-700 hover:text-white rounded-lg"
+          >
             <HiLogout className="w-6 h-6 mr-3" />
             Log Out
-          </Link>
+          </button>
         </div>
       </aside>
 
@@ -67,7 +74,7 @@ export default function AdminDashboard() {
             <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="mr-4 md:hidden">
               <HiMenu className="w-6 h-6" />
             </button>
-            <h2 className="text-2xl font-bold text-gray-800">Selamat Datang, Budi!</h2>
+            <h2 className="text-2xl font-bold text-gray-800">Selamat Datang, {user?.name || 'Admin'}!</h2>
           </div>
           <div className="flex items-center space-x-6">
             <div className="relative hidden md:block">
@@ -84,10 +91,12 @@ export default function AdminDashboard() {
               <HiBell className="w-6 h-6" />
             </button>
             <Link href="/admin/profile" className="flex items-center">
-              <div className="w-10 h-10 rounded-full bg-gray-300 mr-3" />
+              <div className="w-10 h-10 rounded-full bg-saintara-yellow flex items-center justify-center text-white font-bold mr-3">
+                {user?.name?.charAt(0).toUpperCase()}
+              </div>
               <div>
-                <p className="font-semibold text-gray-800">Budi Santoso</p>
-                <p className="text-xs text-gray-500">SYSTEM ADMIN</p>
+                <p className="font-semibold text-gray-800">{user?.name || 'Admin'}</p>
+                <p className="text-xs text-gray-500 uppercase">{user?.role || 'Admin'}</p>
               </div>
             </Link>
           </div>
