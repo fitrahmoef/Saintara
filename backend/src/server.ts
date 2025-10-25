@@ -68,10 +68,12 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   })
 })
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`🚀 Server is running on port ${PORT}`)
-  console.log(`📝 Environment: ${process.env.NODE_ENV}`)
-})
+// Start server (only in development/local mode, not on Vercel)
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`🚀 Server is running on port ${PORT}`)
+    console.log(`📝 Environment: ${process.env.NODE_ENV}`)
+  })
+}
 
 export default app
