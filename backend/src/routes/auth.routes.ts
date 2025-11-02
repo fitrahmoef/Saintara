@@ -10,12 +10,14 @@ import {
   resetPassword
 } from '../controllers/auth.controller'
 import { authenticateToken } from '../middleware/auth.middleware'
+import { authLimiter, passwordResetLimiter } from '../middleware/rate-limit.middleware'
 
 const router = Router()
 
 // Register
 router.post(
   '/register',
+  authLimiter,
   [
     body('email').isEmail().normalizeEmail(),
     body('password').isLength({ min: 6 }),
@@ -27,6 +29,7 @@ router.post(
 // Login
 router.post(
   '/login',
+  authLimiter,
   [
     body('email').isEmail().normalizeEmail(),
     body('password').notEmpty(),
@@ -54,6 +57,7 @@ router.put(
 // Request Password Reset
 router.post(
   '/forgot-password',
+  passwordResetLimiter,
   [body('email').isEmail().normalizeEmail()],
   requestPasswordReset
 )
@@ -61,6 +65,7 @@ router.post(
 // Reset Password
 router.post(
   '/reset-password',
+  passwordResetLimiter,
   [
     body('token').notEmpty(),
     body('new_password').isLength({ min: 6 })
