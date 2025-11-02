@@ -1,0 +1,16 @@
+Dockerfile
+.dockerignore
+node_modules
+npm-debug.log
+.next
+out
+.env*.local
+.git
+.gitignore
+README.md
+coverage
+__tests__
+*.test.ts
+*.test.tsx
+.vscode
+.idea

@@ -4,6 +4,8 @@ const nextConfig = {
   images: {
     domains: ['placehold.co'],
   },
+  // Enable standalone output for Docker
+  output: 'standalone',
 }
 
 module.exports = nextConfig

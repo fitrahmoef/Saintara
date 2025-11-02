@@ -3,7 +3,11 @@ import cors from 'cors'
 import helmet from 'helmet'
 import morgan from 'morgan'
 import dotenv from 'dotenv'
+import swaggerUi from 'swagger-ui-express'
 import pool from './config/database'
+import { generalLimiter } from './middleware/rate-limit.middleware'
+import { swaggerSpec } from './config/swagger'
+import logger, { morganStream } from './config/logger'
 
 // Import routes
 import authRoutes from './routes/auth.routes'
@@ -29,9 +33,24 @@ app.use(cors({
   origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
   credentials: true,
 }))
-app.use(morgan('dev'))
+app.use(morgan('combined', { stream: morganStream }))
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
+
+// API Documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: 'Saintara API Docs',
+}))
+
+// Serve Swagger JSON
+app.get('/api-docs.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/json')
+  res.send(swaggerSpec)
+})
+
+// Apply rate limiting to all API routes
+app.use('/api/', generalLimiter)
 
 // Health check route
 app.get('/health', async (req: Request, res: Response) => {
@@ -73,7 +92,13 @@ app.use((req: Request, res: Response) => {
 
 // Error Handler
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-  console.error(err.stack)
+  logger.error('Unhandled error:', {
+    error: err.message,
+    stack: err.stack,
+    path: req.path,
+    method: req.method,
+  })
+
   res.status(500).json({
     status: 'error',
     message: process.env.NODE_ENV === 'production' ? 'Internal server error' : err.message,
@@ -82,8 +107,9 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`🚀 Server is running on port ${PORT}`)
-  console.log(`📝 Environment: ${process.env.NODE_ENV}`)
+  logger.info(`🚀 Server is running on port ${PORT}`)
+  logger.info(`📝 Environment: ${process.env.NODE_ENV || 'development'}`)
+  logger.info(`📚 API Documentation: http://localhost:${PORT}/api-docs`)
 })
 
 export default app

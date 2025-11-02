@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import pool from '../config/database'
 import { AuthRequest } from '../middleware/auth.middleware'
+import { emailService } from '../services/email.service'
 
 export const register = async (req: Request, res: Response): Promise<void> => {
   const errors = validationResult(req)
@@ -39,6 +40,11 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     )
 
     const user = result.rows[0]
+
+    // Send welcome email (async, don't wait for it)
+    emailService.sendWelcomeEmail(user.email, user.name).catch(err =>
+      console.error('Failed to send welcome email:', err)
+    )
 
     // Generate JWT
     const token = jwt.sign(
@@ -306,15 +312,30 @@ export const requestPasswordReset = async (req: Request, res: Response): Promise
       [user.id, resetToken, expiresAt]
     )
 
-    // TODO: Send email with reset link
-    // For now, we'll just log the token (in production, send via email)
-    console.log(`Password reset token for ${email}: ${resetToken}`)
+    // Get user name for email
+    const userWithName = await pool.query(
+      'SELECT name FROM users WHERE id = $1',
+      [user.id]
+    )
+
+    // Send password reset email
+    const emailSent = await emailService.sendPasswordResetEmail(
+      email,
+      resetToken,
+      userWithName.rows[0]?.name || 'User'
+    )
+
+    if (!emailSent) {
+      console.error(`Failed to send password reset email to ${email}`)
+      // Log token for development if email fails
+      console.log(`Password reset token for ${email}: ${resetToken}`)
+    }
 
     res.status(200).json({
       status: 'success',
       message: 'If the email exists, a password reset link has been sent',
-      // Remove this in production - only for development
-      devToken: resetToken,
+      // Include token in dev mode only
+      ...(process.env.NODE_ENV === 'development' && { devToken: resetToken }),
     })
   } catch (error) {
     console.error('Request password reset error:', error)
