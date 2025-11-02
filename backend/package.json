@@ -7,7 +7,9 @@
     "dev": "nodemon src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "migrate": "node-pg-migrate"
+    "migrate": "node-pg-migrate",
+    "migrate:neon": "node scripts/run-migrations.js",
+    "db:setup": "node scripts/run-migrations.js"
   },
   "keywords": ["saintara", "personality", "api"],
   "author": "",
