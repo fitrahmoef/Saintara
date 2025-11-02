@@ -139,7 +139,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 export const getProfile = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const result = await pool.query(
-      'SELECT id, email, name, role, created_at FROM users WHERE id = $1',
+      'SELECT id, email, name, role, phone, avatar_url, created_at FROM users WHERE id = $1',
       [req.user!.id]
     )
 
@@ -162,6 +162,213 @@ export const getProfile = async (req: AuthRequest, res: Response): Promise<void>
     res.status(500).json({
       status: 'error',
       message: 'Failed to fetch profile',
+    })
+  }
+}
+
+export const updateProfile = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { name, phone, avatar_url } = req.body
+    const userId = req.user!.id
+
+    const updates: string[] = []
+    const values: any[] = []
+    let paramCount = 0
+
+    if (name) {
+      paramCount++
+      updates.push(`name = $${paramCount}`)
+      values.push(name)
+    }
+
+    if (phone) {
+      paramCount++
+      updates.push(`phone = $${paramCount}`)
+      values.push(phone)
+    }
+
+    if (avatar_url) {
+      paramCount++
+      updates.push(`avatar_url = $${paramCount}`)
+      values.push(avatar_url)
+    }
+
+    if (updates.length === 0) {
+      res.status(400).json({
+        status: 'error',
+        message: 'No updates provided',
+      })
+      return
+    }
+
+    const result = await pool.query(
+      `UPDATE users SET ${updates.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = $${paramCount + 1} RETURNING id, email, name, role, phone, avatar_url`,
+      [...values, userId]
+    )
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        user: result.rows[0],
+      },
+    })
+  } catch (error) {
+    console.error('Update profile error:', error)
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to update profile',
+    })
+  }
+}
+
+export const changePassword = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { current_password, new_password } = req.body
+    const userId = req.user!.id
+
+    // Get current password hash
+    const userResult = await pool.query(
+      'SELECT password FROM users WHERE id = $1',
+      [userId]
+    )
+
+    if (userResult.rows.length === 0) {
+      res.status(404).json({
+        status: 'error',
+        message: 'User not found',
+      })
+      return
+    }
+
+    // Verify current password
+    const isPasswordValid = await bcrypt.compare(current_password, userResult.rows[0].password)
+
+    if (!isPasswordValid) {
+      res.status(401).json({
+        status: 'error',
+        message: 'Current password is incorrect',
+      })
+      return
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(new_password, 10)
+
+    // Update password
+    await pool.query(
+      'UPDATE users SET password = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
+      [hashedPassword, userId]
+    )
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Password changed successfully',
+    })
+  } catch (error) {
+    console.error('Change password error:', error)
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to change password',
+    })
+  }
+}
+
+export const requestPasswordReset = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { email } = req.body
+
+    // Check if user exists
+    const userResult = await pool.query(
+      'SELECT id, email FROM users WHERE email = $1',
+      [email]
+    )
+
+    // Always return success to prevent email enumeration
+    if (userResult.rows.length === 0) {
+      res.status(200).json({
+        status: 'success',
+        message: 'If the email exists, a password reset link has been sent',
+      })
+      return
+    }
+
+    const user = userResult.rows[0]
+
+    // Generate reset token
+    const resetToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+    const expiresAt = new Date(Date.now() + 3600000) // 1 hour from now
+
+    // Store reset token
+    await pool.query(
+      `INSERT INTO password_reset_tokens (user_id, token, expires_at)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (user_id) DO UPDATE SET token = $2, expires_at = $3, created_at = CURRENT_TIMESTAMP`,
+      [user.id, resetToken, expiresAt]
+    )
+
+    // TODO: Send email with reset link
+    // For now, we'll just log the token (in production, send via email)
+    console.log(`Password reset token for ${email}: ${resetToken}`)
+
+    res.status(200).json({
+      status: 'success',
+      message: 'If the email exists, a password reset link has been sent',
+      // Remove this in production - only for development
+      devToken: resetToken,
+    })
+  } catch (error) {
+    console.error('Request password reset error:', error)
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to process request',
+    })
+  }
+}
+
+export const resetPassword = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { token, new_password } = req.body
+
+    // Find valid reset token
+    const tokenResult = await pool.query(
+      'SELECT user_id FROM password_reset_tokens WHERE token = $1 AND expires_at > CURRENT_TIMESTAMP',
+      [token]
+    )
+
+    if (tokenResult.rows.length === 0) {
+      res.status(400).json({
+        status: 'error',
+        message: 'Invalid or expired reset token',
+      })
+      return
+    }
+
+    const userId = tokenResult.rows[0].user_id
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(new_password, 10)
+
+    // Update password
+    await pool.query(
+      'UPDATE users SET password = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
+      [hashedPassword, userId]
+    )
+
+    // Delete used reset token
+    await pool.query(
+      'DELETE FROM password_reset_tokens WHERE user_id = $1',
+      [userId]
+    )
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Password reset successfully',
+    })
+  } catch (error) {
+    console.error('Reset password error:', error)
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to reset password',
     })
   }
 }

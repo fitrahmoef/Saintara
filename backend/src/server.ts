@@ -11,6 +11,12 @@ import userRoutes from './routes/user.routes'
 import testRoutes from './routes/test.routes'
 import resultRoutes from './routes/result.routes'
 import adminRoutes from './routes/admin.routes'
+import transactionRoutes from './routes/transaction.routes'
+import voucherRoutes from './routes/voucher.routes'
+import agentRoutes from './routes/agent.routes'
+import eventRoutes from './routes/event.routes'
+import approvalRoutes from './routes/approval.routes'
+import articleRoutes from './routes/article.routes'
 
 dotenv.config()
 
@@ -50,6 +56,12 @@ app.use('/api/users', userRoutes)
 app.use('/api/tests', testRoutes)
 app.use('/api/results', resultRoutes)
 app.use('/api/admin', adminRoutes)
+app.use('/api/transactions', transactionRoutes)
+app.use('/api/vouchers', voucherRoutes)
+app.use('/api/agents', agentRoutes)
+app.use('/api/events', eventRoutes)
+app.use('/api/approvals', approvalRoutes)
+app.use('/api/articles', articleRoutes)
 
 // 404 Handler
 app.use((req: Request, res: Response) => {
