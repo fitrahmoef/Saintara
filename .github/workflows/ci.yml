@@ -161,5 +161,7 @@ jobs:
           context: ./frontend
           push: false
           tags: saintara-frontend:test
+          build-args: |
+            NEXT_PUBLIC_API_URL=http://localhost:5000/api
           cache-from: type=gha
           cache-to: type=gha,mode=max
