@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import { api } from '@/lib/api'
+import { testAPI } from '@/lib/api'
 import { HiArrowLeft, HiArrowRight, HiCheckCircle } from 'react-icons/hi'
 
 interface Question {
@@ -35,7 +35,7 @@ export default function TakeTestPage() {
   const fetchQuestions = async () => {
     try {
       setLoading(true)
-      const response = await api.tests.getQuestions()
+      const response = await testAPI.getQuestions()
       setQuestions(response.data.data)
 
       // Initialize answers array
@@ -78,7 +78,7 @@ export default function TakeTestPage() {
       setSubmitting(true)
       setError('')
 
-      await api.tests.submit(testId, { answers })
+      await testAPI.submitTest(parseInt(testId), answers)
 
       // Redirect to results page
       router.push('/dashboard/results')

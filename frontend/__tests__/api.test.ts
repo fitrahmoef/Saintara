@@ -1,4 +1,4 @@
-import { api } from '@/lib/api'
+import { authAPI, testAPI, resultAPI, adminAPI } from '@/lib/api'
 
 // Mock axios
 jest.mock('axios', () => ({
@@ -25,25 +25,25 @@ jest.mock('axios', () => ({
 
 describe('API Client', () => {
   it('should have auth methods', () => {
-    expect(api.auth).toBeDefined()
-    expect(api.auth.login).toBeDefined()
-    expect(api.auth.register).toBeDefined()
-    expect(api.auth.getProfile).toBeDefined()
+    expect(authAPI).toBeDefined()
+    expect(authAPI.login).toBeDefined()
+    expect(authAPI.register).toBeDefined()
+    expect(authAPI.getProfile).toBeDefined()
   })
 
   it('should have tests methods', () => {
-    expect(api.tests).toBeDefined()
-    expect(api.tests.getAll).toBeDefined()
-    expect(api.tests.create).toBeDefined()
+    expect(testAPI).toBeDefined()
+    expect(testAPI.getQuestions).toBeDefined()
+    expect(testAPI.createTest).toBeDefined()
   })
 
   it('should have results methods', () => {
-    expect(api.results).toBeDefined()
-    expect(api.results.getAll).toBeDefined()
+    expect(resultAPI).toBeDefined()
+    expect(resultAPI.getUserResults).toBeDefined()
   })
 
   it('should have admin methods', () => {
-    expect(api.admin).toBeDefined()
-    expect(api.admin.getStats).toBeDefined()
+    expect(adminAPI).toBeDefined()
+    expect(adminAPI.getStats).toBeDefined()
   })
 })

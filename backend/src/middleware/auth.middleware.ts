@@ -54,3 +54,20 @@ export const authorizeRole = (...roles: string[]) => {
     next()
   }
 }
+
+// Alternative version that accepts array parameter
+export const requireRole = (roles: string[]) => {
+  return (req: AuthRequest, res: Response, next: NextFunction): void => {
+    if (!req.user || !roles.includes(req.user.role)) {
+      res.status(403).json({
+        status: 'error',
+        message: 'Access denied',
+      })
+      return
+    }
+    next()
+  }
+}
+
+// Alias for backward compatibility
+export const authenticate = authenticateToken
