@@ -42,6 +42,13 @@ jobs:
         working-directory: ./backend
         run: npm ci
 
+      - name: Setup database schema
+        working-directory: ./backend
+        run: |
+          PGPASSWORD=postgres psql -h localhost -U postgres -d saintara_test -f database/schema.sql
+        env:
+          PGPASSWORD: postgres
+
       - name: Run backend linter
         working-directory: ./backend
         run: npm run build
