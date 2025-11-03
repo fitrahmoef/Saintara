@@ -8,7 +8,15 @@ interface User {
   id: number
   email: string
   name: string
+  nickname?: string
   role: string
+  phone?: string
+  gender?: string
+  blood_type?: string
+  country?: string
+  city?: string
+  avatar_url?: string
+  created_at?: string
 }
 
 interface AuthContextType {
@@ -17,6 +25,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>
   register: (email: string, password: string, name: string) => Promise<void>
   logout: () => void
+  setUser: (user: User | null) => void
   isLoading: boolean
 }
 
@@ -100,7 +109,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, token, login, register, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, token, login, register, logout, setUser, isLoading }}>
       {children}
     </AuthContext.Provider>
   )
