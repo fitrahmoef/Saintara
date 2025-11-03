@@ -56,6 +56,9 @@ export const testAPI = {
     api.post(`/tests/${id}/submit`, { answers }),
 }
 
+// Attach to api object for backward compatibility
+;(api as any).tests = testAPI
+
 // Result API
 export const resultAPI = {
   getUserResults: () => api.get('/results'),
@@ -203,4 +206,15 @@ export const articleAPI = {
   delete: (id: number) => api.delete(`/articles/${id}`),
 }
 
-export default api
+// Export all API modules
+export { api as default, api }
+export const tests = testAPI
+export const auth = authAPI
+export const results = resultAPI
+export const admin = adminAPI
+export const transactions = transactionAPI
+export const vouchers = voucherAPI
+export const agents = agentAPI
+export const events = eventAPI
+export const approvals = approvalAPI
+export const articles = articleAPI
