@@ -145,7 +145,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 export const getProfile = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const result = await pool.query(
-      'SELECT id, email, name, role, phone, avatar_url, created_at FROM users WHERE id = $1',
+      'SELECT id, email, name, nickname, role, phone, gender, blood_type, country, city, avatar_url, created_at FROM users WHERE id = $1',
       [req.user!.id]
     )
 
@@ -174,26 +174,75 @@ export const getProfile = async (req: AuthRequest, res: Response): Promise<void>
 
 export const updateProfile = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const { name, phone, avatar_url } = req.body
+    const { name, nickname, phone, gender, blood_type, country, city, avatar_url } = req.body
     const userId = req.user!.id
+
+    // Validate gender if provided
+    if (gender && !['Laki-laki', 'Perempuan'].includes(gender)) {
+      res.status(400).json({
+        status: 'error',
+        message: 'Invalid gender. Must be "Laki-laki" or "Perempuan"',
+      })
+      return
+    }
+
+    // Validate blood_type if provided
+    const validBloodTypes = ['A', 'B', 'AB', 'O', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
+    if (blood_type && !validBloodTypes.includes(blood_type)) {
+      res.status(400).json({
+        status: 'error',
+        message: 'Invalid blood type',
+      })
+      return
+    }
 
     const updates: string[] = []
     const values: any[] = []
     let paramCount = 0
 
-    if (name) {
+    if (name !== undefined) {
       paramCount++
       updates.push(`name = $${paramCount}`)
       values.push(name)
     }
 
-    if (phone) {
+    if (nickname !== undefined) {
+      paramCount++
+      updates.push(`nickname = $${paramCount}`)
+      values.push(nickname)
+    }
+
+    if (phone !== undefined) {
       paramCount++
       updates.push(`phone = $${paramCount}`)
       values.push(phone)
     }
 
-    if (avatar_url) {
+    if (gender !== undefined) {
+      paramCount++
+      updates.push(`gender = $${paramCount}`)
+      values.push(gender)
+    }
+
+    if (blood_type !== undefined) {
+      paramCount++
+      updates.push(`blood_type = $${paramCount}`)
+      values.push(blood_type)
+    }
+
+    if (country !== undefined) {
+      paramCount++
+      updates.push(`country = $${paramCount}`)
+      values.push(country)
+    }
+
+    if (city !== undefined) {
+      paramCount++
+      updates.push(`city = $${paramCount}`)
+      values.push(city)
+    }
+
+    if (avatar_url !== undefined) {
       paramCount++
       updates.push(`avatar_url = $${paramCount}`)
       values.push(avatar_url)
@@ -208,7 +257,7 @@ export const updateProfile = async (req: AuthRequest, res: Response): Promise<vo
     }
 
     const result = await pool.query(
-      `UPDATE users SET ${updates.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = $${paramCount + 1} RETURNING id, email, name, role, phone, avatar_url`,
+      `UPDATE users SET ${updates.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = $${paramCount + 1} RETURNING id, email, name, nickname, role, phone, gender, blood_type, country, city, avatar_url`,
       [...values, userId]
     )
 
