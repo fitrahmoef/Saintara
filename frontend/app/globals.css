@@ -2,22 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap");
 
 :root {
-  --saintara-yellow: #FEC53D;
+  --saintara-yellow: #fec53d;
   --saintara-black: #000000;
-  --saintara-white: #FFFFFF;
+  --saintara-white: #ffffff;
 }
 
 body {
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   background-color: var(--saintara-white);
   color: var(--saintara-black);
 }
 
 .font-poppins {
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
 }
 
 .hero-gradient {
@@ -31,4 +31,24 @@ body {
 /* Smooth scroll */
 html {
   scroll-behavior: smooth;
+}
+
+rdp-day_modifier_scheduled {
+  position: relative;
+}
+
+.rdp-day_modifier_scheduled::after {
+  content: "";
+  position: absolute;
+  bottom: 8px; /* Sesuaikan posisi vertikal titik */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 6px; /* Ukuran titik */
+  height: 6px; /* Ukuran titik */
+  border-radius: 50%;
+  background-color: #facc15; /* Ganti dengan warna --saintara-yellow Anda jika pakai variabel CSS */
+}
+
+.rdp-day_selected.rdp-day_modifier_scheduled::after {
+  background-color: #ffffff;
 }
