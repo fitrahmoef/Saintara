@@ -206,6 +206,90 @@ export const articleAPI = {
   delete: (id: number) => api.delete(`/articles/${id}`),
 }
 
+// Institution API
+export const institutionAPI = {
+  getAll: (params?: { page?: number; limit?: number; search?: string; is_active?: boolean }) =>
+    api.get('/institutions', { params }),
+
+  getById: (id: number) => api.get(`/institutions/${id}`),
+
+  create: (data: {
+    name: string
+    code: string
+    contact_email?: string
+    contact_phone?: string
+    address?: string
+    max_users: number
+    subscription_type: string
+  }) => api.post('/institutions', data),
+
+  update: (id: number, data: any) =>
+    api.put(`/institutions/${id}`, data),
+
+  delete: (id: number) => api.delete(`/institutions/${id}`),
+
+  getStatistics: (id: number) => api.get(`/institutions/${id}/statistics`),
+
+  getAnalytics: (id: number, params?: { start_date?: string; end_date?: string }) =>
+    api.get(`/institutions/${id}/analytics`, { params }),
+
+  // Admin management
+  getAdmins: (id: number) => api.get(`/institutions/${id}/admins`),
+
+  assignAdmin: (id: number, user_id: number, role: string) =>
+    api.post(`/institutions/${id}/admins`, { user_id, role }),
+
+  removeAdmin: (institutionId: number, adminId: number) =>
+    api.delete(`/institutions/${institutionId}/admins/${adminId}`),
+}
+
+// Customer API
+export const customerAPI = {
+  getAll: (params?: {
+    page?: number
+    limit?: number
+    search?: string
+    institution_id?: number
+    tag_id?: number
+    status?: string
+    sort_by?: string
+    sort_order?: string
+  }) => api.get('/customers', { params }),
+
+  getById: (id: number) => api.get(`/customers/${id}`),
+
+  create: (data: {
+    email: string
+    name: string
+    password: string
+    phone?: string
+    gender?: string
+    blood_type?: string
+    country?: string
+    city?: string
+    nickname?: string
+    institution_id?: number
+    tag_ids?: number[]
+  }) => api.post('/customers', data),
+
+  update: (id: number, data: any) =>
+    api.put(`/customers/${id}`, data),
+
+  delete: (id: number) => api.delete(`/customers/${id}`),
+
+  // Bulk operations
+  downloadTemplate: () =>
+    api.get('/customers/bulk/template', { responseType: 'blob' }),
+
+  bulkImport: (formData: FormData) =>
+    api.post('/customers/bulk/import', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
+
+  getImportHistory: (params?: { page?: number; limit?: number }) =>
+    api.get('/customers/bulk/history', { params }),
+}
+
 // Export all API modules
 export { api as default, api }
 export const tests = testAPI
@@ -218,3 +302,5 @@ export const agents = agentAPI
 export const events = eventAPI
 export const approvals = approvalAPI
 export const articles = articleAPI
+export const institutions = institutionAPI
+export const customers = customerAPI
