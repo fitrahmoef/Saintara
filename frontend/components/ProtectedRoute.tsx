@@ -9,6 +9,9 @@ interface ProtectedRouteProps {
   requireAdmin?: boolean
 }
 
+// Admin roles that should have access to admin pages
+const ADMIN_ROLES = ['superadmin', 'institution_admin', 'admin']
+
 export default function ProtectedRoute({ children, requireAdmin = false }: ProtectedRouteProps) {
   const { user, isLoading } = useAuth()
   const router = useRouter()
@@ -17,7 +20,7 @@ export default function ProtectedRoute({ children, requireAdmin = false }: Prote
     if (!isLoading) {
       if (!user) {
         router.push('/login')
-      } else if (requireAdmin && user.role !== 'admin') {
+      } else if (requireAdmin && !ADMIN_ROLES.includes(user.role)) {
         router.push('/dashboard')
       }
     }
@@ -38,7 +41,7 @@ export default function ProtectedRoute({ children, requireAdmin = false }: Prote
     return null
   }
 
-  if (requireAdmin && user.role !== 'admin') {
+  if (requireAdmin && !ADMIN_ROLES.includes(user.role)) {
     return null
   }
 

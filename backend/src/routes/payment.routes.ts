@@ -9,8 +9,7 @@ import {
   handleStripeWebhook,
   handleXenditWebhook
 } from '../controllers/webhook.controller';
-import { authenticate } from '../middleware/auth';
-import { requireRole } from '../middleware/role';
+import { authenticate, requireRole } from '../middleware/auth.middleware';
 
 const router = Router();
 
