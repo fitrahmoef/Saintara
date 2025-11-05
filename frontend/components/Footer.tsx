@@ -33,7 +33,7 @@ export default function Footer() {
                   </Link>
                 </li>
                 <li className="mb-4">
-                  <Link href="/#" className="hover:underline">
+                  <Link href="/register" className="hover:underline" aria-label="Contact us">
                     Kontak
                   </Link>
                 </li>
@@ -45,12 +45,12 @@ export default function Footer() {
               </h2>
               <ul className="text-gray-400 font-medium">
                 <li className="mb-4">
-                  <Link href="#" className="hover:underline">
+                  <Link href="/privacy" className="hover:underline" aria-label="Privacy policy">
                     Privacy Policy
                   </Link>
                 </li>
                 <li>
-                  <Link href="#" className="hover:underline">
+                  <Link href="/terms" className="hover:underline" aria-label="Terms and conditions">
                     Terms & Conditions
                   </Link>
                 </li>
@@ -68,19 +68,19 @@ export default function Footer() {
             . All Rights Reserved.
           </span>
           <div className="flex mt-4 sm:justify-center sm:mt-0 space-x-5">
-            <Link href="#" className="text-gray-400 hover:text-white">
+            <Link href="https://www.instagram.com/saintara" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white" aria-label="Visit our Instagram page">
               <FaInstagram className="w-5 h-5" />
               <span className="sr-only">Instagram page</span>
             </Link>
-            <Link href="#" className="text-gray-400 hover:text-white">
+            <Link href="https://www.linkedin.com/company/saintara" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white" aria-label="Visit our LinkedIn page">
               <FaLinkedin className="w-5 h-5" />
               <span className="sr-only">LinkedIn page</span>
             </Link>
-            <Link href="#" className="text-gray-400 hover:text-white">
+            <Link href="https://twitter.com/saintara" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white" aria-label="Visit our Twitter page">
               <FaTwitter className="w-5 h-5" />
               <span className="sr-only">Twitter page</span>
             </Link>
-            <Link href="#" className="text-gray-400 hover:text-white">
+            <Link href="https://www.facebook.com/saintara" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white" aria-label="Visit our Facebook page">
               <FaFacebook className="w-5 h-5" />
               <span className="sr-only">Facebook page</span>
             </Link>

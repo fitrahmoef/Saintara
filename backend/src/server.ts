@@ -6,6 +6,7 @@ import dotenv from 'dotenv'
 import swaggerUi from 'swagger-ui-express'
 import pool from './config/database'
 import { generalLimiter } from './middleware/rate-limit.middleware'
+import { csrfProtection } from './middleware/csrf.middleware'
 import { swaggerSpec } from './config/swagger'
 import logger, { morganStream } from './config/logger'
 
@@ -59,7 +60,42 @@ const app: Application = express()
 const PORT = process.env.PORT || 5000
 
 // Middleware
-app.use(helmet())
+// Enhanced security headers with Helmet
+app.use(helmet({
+  // Enforce HTTPS with HSTS (HTTP Strict Transport Security)
+  hsts: {
+    maxAge: 31536000, // 1 year in seconds
+    includeSubDomains: true,
+    preload: true,
+  },
+  // Content Security Policy (CSP)
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'"],
+      fontSrc: ["'self'"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'"],
+      frameSrc: ["'none'"],
+    },
+  },
+  // X-Frame-Options: Prevent clickjacking
+  frameguard: {
+    action: 'deny',
+  },
+  // X-Content-Type-Options: Prevent MIME type sniffing
+  noSniff: true,
+  // X-XSS-Protection: Enable XSS filter (legacy browsers)
+  xssFilter: true,
+  // Referrer-Policy: Control referrer information
+  referrerPolicy: {
+    policy: 'strict-origin-when-cross-origin',
+  },
+}))
+
 app.use(cors({
   origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
   credentials: true,
@@ -86,6 +122,9 @@ app.get('/api-docs.json', (req, res) => {
 
 // Apply rate limiting to all API routes
 app.use('/api/', generalLimiter)
+
+// Apply CSRF protection to all API routes
+app.use('/api/', csrfProtection)
 
 // Health check route
 app.get('/health', async (req: Request, res: Response) => {

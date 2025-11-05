@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import pool from '../config/database';
+import { sanitizeArticle } from '../utils/xss-sanitizer';
 
 // Get all articles
 export const getAllArticles = async (req: Request, res: Response) => {
@@ -90,7 +91,13 @@ export const getArticleById = async (req: Request, res: Response) => {
 export const createArticle = async (req: Request, res: Response) => {
   try {
     const authorId = (req as any).user.userId;
-    const { title, content, category, featured_image, is_published } = req.body;
+    let { title, content, category, featured_image, is_published } = req.body;
+
+    // Sanitize user input to prevent XSS attacks
+    const sanitized = sanitizeArticle({ title, content, category });
+    title = sanitized.title;
+    content = sanitized.content;
+    category = sanitized.category;
 
     // Generate slug from title
     const slug = title.toLowerCase()
@@ -119,7 +126,15 @@ export const createArticle = async (req: Request, res: Response) => {
 export const updateArticle = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { title, content, category, featured_image, is_published } = req.body;
+    let { title, content, category, featured_image, is_published } = req.body;
+
+    // Sanitize user input to prevent XSS attacks
+    if (title || content || category) {
+      const sanitized = sanitizeArticle({ title, content, category });
+      if (title) title = sanitized.title;
+      if (content) content = sanitized.content;
+      if (category) category = sanitized.category;
+    }
 
     const updates: string[] = [];
     const values: any[] = [];

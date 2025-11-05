@@ -67,10 +67,10 @@ export default function Home() {
             </h1>
             <p className="mt-6 text-lg text-gray-600 max-w-xl mx-auto lg:mx-0">Peta sempurna kehidupan untuk menggali potensi dan menjadi diri sendiri seutuhnya—untuk Anda, keluarga, pasangan, sahabat, dan tim.</p>
             <div className="mt-10 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
-              <Link href="#harga" className="w-full sm:w-auto text-center text-white bg-saintara-yellow hover:bg-saintara-black focus:ring-4 focus:ring-yellow-300 font-semibold rounded-lg text-base px-8 py-3 transition-all transform hover:scale-105 duration-300">
+              <Link href="#harga" className="w-full sm:w-auto text-center text-white bg-saintara-yellow hover:bg-saintara-black focus:ring-4 focus:ring-yellow-300 font-semibold rounded-lg text-base px-8 py-3 transition-all transform hover:scale-105 duration-300" aria-label="Try test now">
                 Coba Tes Sekarang
               </Link>
-              <Link href="#" className="w-full sm:w-auto text-center text-saintara-black border-2 border-saintara-black hover:bg-saintara-black hover:text-white font-semibold rounded-lg text-base px-8 py-3 transition-colors duration-300">
+              <Link href="/register" className="w-full sm:w-auto text-center text-saintara-black border-2 border-saintara-black hover:bg-saintara-black hover:text-white font-semibold rounded-lg text-base px-8 py-3 transition-colors duration-300" aria-label="Register for partnership license">
                 Daftar Kemitraan Lisensi
               </Link>
             </div>
@@ -159,7 +159,7 @@ export default function Home() {
                 </div>
                 <div className="absolute inset-0 bg-saintara-black/90 flex flex-col justify-center items-center p-6 text-center text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                   <p className="mb-4">{char.desc}</p>
-                  <Link href="#" className="px-6 py-2 border-2 border-white rounded-full hover:bg-white hover:text-saintara-black transition-colors">
+                  <Link href="/dashboard/articles" className="px-6 py-2 border-2 border-white rounded-full hover:bg-white hover:text-saintara-black transition-colors" aria-label={`Learn more about ${char.name}`}>
                     Pelajari Lebih Lanjut
                   </Link>
                 </div>
@@ -225,7 +225,7 @@ export default function Home() {
                   Analisis Karakter Alami
                 </li>
               </ul>
-              <Link href="#" className="mt-8 w-full text-center text-saintara-black border-2 border-saintara-black hover:bg-saintara-black hover:text-white font-semibold rounded-lg text-base px-8 py-3 transition-colors duration-300">
+              <Link href="/register" className="mt-8 w-full text-center text-saintara-black border-2 border-saintara-black hover:bg-saintara-black hover:text-white font-semibold rounded-lg text-base px-8 py-3 transition-colors duration-300" aria-label="Choose individual package">
                 Pilih Paket
               </Link>
             </div>
@@ -253,7 +253,7 @@ export default function Home() {
                   Saran Pengembangan Hubungan
                 </li>
               </ul>
-              <Link href="#" className="mt-8 w-full text-center text-saintara-yellow bg-saintara-black hover:bg-black hover:text-white font-semibold rounded-lg text-base px-8 py-3 transition-colors duration-300">
+              <Link href="/register" className="mt-8 w-full text-center text-saintara-yellow bg-saintara-black hover:bg-black hover:text-white font-semibold rounded-lg text-base px-8 py-3 transition-colors duration-300" aria-label="Choose couple package">
                 Pilih Paket
               </Link>
             </div>
@@ -279,7 +279,7 @@ export default function Home() {
                   Workshop & Konsultasi
                 </li>
               </ul>
-              <Link href="#" className="mt-8 w-full text-center text-saintara-black border-2 border-saintara-black hover:bg-saintara-black hover:text-white font-semibold rounded-lg text-base px-8 py-3 transition-colors duration-300">
+              <Link href="/register" className="mt-8 w-full text-center text-saintara-black border-2 border-saintara-black hover:bg-saintara-black hover:text-white font-semibold rounded-lg text-base px-8 py-3 transition-colors duration-300" aria-label="Contact sales for team package">
                 Kontak Sales
               </Link>
             </div>
