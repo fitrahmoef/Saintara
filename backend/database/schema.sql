@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS test_questions (
 CREATE TABLE IF NOT EXISTS test_answers (
     id SERIAL PRIMARY KEY,
     test_id INTEGER REFERENCES tests(id) ON DELETE CASCADE,
-    question_id INTEGER REFERENCES test_questions(id),
+    question_id INTEGER REFERENCES test_questions(id) ON DELETE CASCADE,
     answer_value INTEGER CHECK (answer_value BETWEEN 1 AND 5),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -70,7 +70,7 @@ CREATE TABLE IF NOT EXISTS test_results (
     id SERIAL PRIMARY KEY,
     test_id INTEGER REFERENCES tests(id) ON DELETE CASCADE,
     user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    character_type_id INTEGER REFERENCES character_types(id),
+    character_type_id INTEGER REFERENCES character_types(id) ON DELETE SET NULL,
     personality_traits JSONB,
     strengths TEXT[],
     challenges TEXT[],
@@ -100,7 +100,7 @@ CREATE TABLE IF NOT EXISTS transactions (
 -- Tokens/Vouchers table
 CREATE TABLE IF NOT EXISTS vouchers (
     id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES users(id),
+    user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
     code VARCHAR(50) UNIQUE NOT NULL,
     package_type VARCHAR(50) CHECK (package_type IN ('personal', 'couple', 'team')),
     is_used BOOLEAN DEFAULT false,
@@ -125,7 +125,7 @@ CREATE TABLE IF NOT EXISTS agents (
 CREATE TABLE IF NOT EXISTS agent_sales (
     id SERIAL PRIMARY KEY,
     agent_id INTEGER REFERENCES agents(id) ON DELETE CASCADE,
-    transaction_id INTEGER REFERENCES transactions(id),
+    transaction_id INTEGER REFERENCES transactions(id) ON DELETE SET NULL,
     commission_amount DECIMAL(10, 2),
     status VARCHAR(50) DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'paid')),
     paid_at TIMESTAMP,
@@ -157,12 +157,16 @@ CREATE TABLE IF NOT EXISTS event_registrations (
 );
 
 -- Admin approvals table
+-- Note: reference_id is a polymorphic foreign key that references different tables based on type:
+--   - 'agent_commission' -> references agent_sales.id
+--   - 'partnership' -> references partnership records (if implemented)
+--   - 'event_invite' -> references events.id
 CREATE TABLE IF NOT EXISTS approvals (
     id SERIAL PRIMARY KEY,
     type VARCHAR(100) NOT NULL CHECK (type IN ('agent_commission', 'partnership', 'event_invite')),
-    reference_id INTEGER,
-    requester_id INTEGER REFERENCES users(id),
-    approver_id INTEGER REFERENCES users(id),
+    reference_id INTEGER NOT NULL,
+    requester_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    approver_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
     status VARCHAR(50) DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
     notes TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -172,10 +176,29 @@ CREATE TABLE IF NOT EXISTS approvals (
 -- Create indexes for better performance
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_tests_user_id ON tests(user_id);
+CREATE INDEX idx_tests_created_at ON tests(created_at);
+CREATE INDEX idx_test_answers_test_id ON test_answers(test_id);
+CREATE INDEX idx_test_answers_question_id ON test_answers(question_id);
 CREATE INDEX idx_test_results_user_id ON test_results(user_id);
+CREATE INDEX idx_test_results_test_id ON test_results(test_id);
+CREATE INDEX idx_test_results_character_type_id ON test_results(character_type_id);
 CREATE INDEX idx_transactions_user_id ON transactions(user_id);
+CREATE INDEX idx_transactions_status ON transactions(status);
+CREATE INDEX idx_transactions_created_at ON transactions(created_at);
+CREATE INDEX idx_vouchers_user_id ON vouchers(user_id);
+CREATE INDEX idx_vouchers_expires_at ON vouchers(expires_at);
 CREATE INDEX idx_agents_user_id ON agents(user_id);
 CREATE INDEX idx_agent_sales_agent_id ON agent_sales(agent_id);
+CREATE INDEX idx_agent_sales_transaction_id ON agent_sales(transaction_id);
+CREATE INDEX idx_agent_sales_status ON agent_sales(status);
+CREATE INDEX idx_event_registrations_event_id ON event_registrations(event_id);
+CREATE INDEX idx_event_registrations_user_id ON event_registrations(user_id);
+CREATE INDEX idx_events_status_date ON events(status, event_date);
+CREATE INDEX idx_approvals_requester_id ON approvals(requester_id);
+CREATE INDEX idx_approvals_approver_id ON approvals(approver_id);
+CREATE INDEX idx_approvals_reference_id ON approvals(reference_id);
+CREATE INDEX idx_approvals_type ON approvals(type);
+CREATE INDEX idx_approvals_status_type ON approvals(status, type);
 
 -- Create updated_at trigger function
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -215,7 +238,7 @@ CREATE TABLE IF NOT EXISTS articles (
     content TEXT NOT NULL,
     category VARCHAR(100),
     featured_image VARCHAR(500),
-    author_id INTEGER REFERENCES users(id),
+    author_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
     is_published BOOLEAN DEFAULT false,
     views INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
