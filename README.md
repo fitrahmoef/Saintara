@@ -26,8 +26,9 @@ The platform uses a clean and professional color scheme:
 - **Security**: Helmet, bcryptjs, CORS
 
 ### Database
-- **Database**: PostgreSQL
-- **ORM**: Native pg driver
+- **Database**: PostgreSQL / Neon (Serverless PostgreSQL)
+- **Driver**: Native pg driver + @neondatabase/serverless
+- **Features**: Connection pooling, SSL support, dual-mode configuration
 
 ## 📁 Project Structure
 
@@ -92,6 +93,29 @@ cp .env.example .env
 ```
 
 ### 3. Database Setup
+
+#### Option A: Using Neon Database (Recommended)
+
+Neon adalah serverless PostgreSQL yang mudah dan gratis untuk development.
+
+```bash
+# 1. Buat account di https://console.neon.tech
+# 2. Buat project baru dan dapatkan connection string
+# 3. Setup di .env file:
+
+DATABASE_URL=postgresql://user:pass@ep-xxx.region.aws.neon.tech/saintara?sslmode=require
+
+# 4. Test koneksi
+cd backend
+npm run db:test
+
+# 5. Initialize database
+npm run db:init
+```
+
+📚 **Panduan lengkap**: Lihat [NEON_DATABASE_SETUP.md](./NEON_DATABASE_SETUP.md)
+
+#### Option B: Using Local PostgreSQL
 
 ```bash
 # Create PostgreSQL database
@@ -253,6 +277,18 @@ NEXT_PUBLIC_API_URL=http://localhost:5000/api
 ```
 
 ### Backend (.env)
+
+**Option A: Neon Database (Recommended)**
+```
+PORT=5000
+NODE_ENV=development
+DATABASE_URL=postgresql://user:pass@ep-xxx.region.aws.neon.tech/saintara?sslmode=require
+JWT_SECRET=your_jwt_secret
+JWT_EXPIRES_IN=7d
+CORS_ORIGIN=http://localhost:3000
+```
+
+**Option B: Local PostgreSQL**
 ```
 PORT=5000
 NODE_ENV=development
