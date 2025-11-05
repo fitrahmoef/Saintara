@@ -1,25 +1,15 @@
 import nodemailer, { Transporter } from 'nodemailer';
-
-interface EmailConfig {
-  host: string;
-  port: number;
-  secure?: boolean;
-  auth: {
-    user: string;
-    pass: string;
-  };
-}
-
-interface SendEmailOptions {
-  to: string;
-  subject: string;
-  html: string;
-  text?: string;
-}
+import {
+  EmailConfig,
+  SendEmailOptions,
+  EmailSendResult,
+  TemplateRenderData
+} from '../types/email.types';
 
 class EmailService {
   private transporter: Transporter | null = null;
   private fromEmail: string;
+  private isConfigured: boolean = false;
 
   constructor() {
     this.fromEmail = process.env.EMAIL_FROM || 'Saintara <noreply@saintara.com>';
@@ -35,6 +25,7 @@ class EmailService {
     // Skip initialization if email config is not provided (for development)
     if (!host || !port || !user || !pass) {
       console.warn('Email service not configured. Email features will be disabled.');
+      this.isConfigured = false;
       return;
     }
 
@@ -49,42 +40,115 @@ class EmailService {
     };
 
     this.transporter = nodemailer.createTransport(config);
+    this.isConfigured = true;
 
     // Verify connection configuration
     this.transporter.verify((error) => {
       if (error) {
         console.error('Email service configuration error:', error);
+        this.isConfigured = false;
       } else {
         console.log('Email service ready to send messages');
       }
     });
   }
 
-  async sendEmail(options: SendEmailOptions): Promise<boolean> {
-    if (!this.transporter) {
+  /**
+   * Check if email service is configured and ready
+   */
+  public isReady(): boolean {
+    return this.isConfigured && this.transporter !== null;
+  }
+
+  /**
+   * Send email immediately (without queue)
+   */
+  async sendEmail(options: SendEmailOptions): Promise<EmailSendResult> {
+    if (!this.transporter || !this.isConfigured) {
       console.warn('Email service not available. Email not sent to:', options.to);
-      return false;
+      return {
+        success: false,
+        error: 'Email service not configured'
+      };
     }
 
     try {
       const mailOptions = {
-        from: this.fromEmail,
-        to: options.to,
+        from: options.from
+          ? (options.fromName ? `${options.fromName} <${options.from}>` : options.from)
+          : this.fromEmail,
+        to: options.toName ? `${options.toName} <${options.to}>` : options.to,
         subject: options.subject,
         html: options.html,
-        text: options.text || options.html.replace(/<[^>]*>/g, ''), // Strip HTML for text version
+        text: options.text || this.stripHtml(options.html),
       };
 
       const info = await this.transporter.sendMail(mailOptions);
       console.log('Email sent successfully:', info.messageId);
-      return true;
+      return {
+        success: true,
+        messageId: info.messageId
+      };
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       console.error('Error sending email:', error);
-      return false;
+      return {
+        success: false,
+        error: errorMessage
+      };
     }
   }
 
-  async sendPasswordResetEmail(email: string, resetToken: string, name: string): Promise<boolean> {
+  /**
+   * Strip HTML tags for plain text version
+   */
+  private stripHtml(html: string): string {
+    return html.replace(/<[^>]*>/g, '');
+  }
+
+  /**
+   * Render template with data (simple template engine)
+   */
+  public renderTemplate(template: string, data: TemplateRenderData): string {
+    let rendered = template;
+
+    // Replace {{variable}} with data values
+    Object.keys(data).forEach(key => {
+      const value = data[key];
+      const regex = new RegExp(`{{${key}}}`, 'g');
+      rendered = rendered.replace(regex, String(value ?? ''));
+    });
+
+    // Handle simple conditional blocks {{#if variable}}...{{/if}}
+    rendered = rendered.replace(/{{#if\s+(\w+)}}([\s\S]*?){{\/if}}/g, (match, variable, content) => {
+      return data[variable] ? content : '';
+    });
+
+    // Handle simple loops {{#each array}}...{{/each}}
+    rendered = rendered.replace(/{{#each\s+(\w+)}}([\s\S]*?){{\/each}}/g, (match, variable, content) => {
+      const array = data[variable];
+      if (Array.isArray(array)) {
+        return array.map(item => {
+          let itemContent = content;
+          if (typeof item === 'object') {
+            Object.keys(item).forEach(key => {
+              const regex = new RegExp(`{{${key}}}`, 'g');
+              itemContent = itemContent.replace(regex, String(item[key] ?? ''));
+            });
+          }
+          return itemContent;
+        }).join('');
+      }
+      return '';
+    });
+
+    return rendered;
+  }
+
+  /**
+   * Send password reset email
+   */
+  async sendPasswordResetEmail(email: string, resetToken: string, name: string): Promise<EmailSendResult> {
     const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
 
     const html = `
@@ -138,12 +202,16 @@ class EmailService {
 
     return this.sendEmail({
       to: email,
+      toName: name,
       subject: 'Reset Your Saintara Password',
       html,
     });
   }
 
-  async sendWelcomeEmail(email: string, name: string): Promise<boolean> {
+  /**
+   * Send welcome email
+   */
+  async sendWelcomeEmail(email: string, name: string, institutionName?: string): Promise<EmailSendResult> {
     const loginUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/login`;
 
     const html = `
@@ -176,6 +244,7 @@ class EmailService {
           <div class="content">
             <h2>Hello ${name}!</h2>
             <p>Thank you for joining Saintara, your journey to self-discovery starts now!</p>
+            ${institutionName ? `<p><strong>Institution:</strong> ${institutionName}</p>` : ''}
             <p>With Saintara, you can:</p>
             <ul>
               <li>Discover your natural character traits</li>
@@ -199,6 +268,7 @@ class EmailService {
 
     return this.sendEmail({
       to: email,
+      toName: name,
       subject: 'Welcome to Saintara - Discover Your True Potential',
       html,
     });

@@ -16,7 +16,7 @@ import {
   BulkImportError,
   CustomerListQuery,
 } from '../types/institution.types';
-import { sendEmail } from '../utils/email';
+import { emailService } from '../services/email.service';
 
 /**
  * Get customers for institution admin
@@ -92,7 +92,7 @@ export const getCustomers = async (
       WHERE u.institution_id = $1 AND u.role = 'user'
     `;
 
-    const queryParams: any[] = [targetInstitutionId];
+    const queryParams: (string | boolean | number)[] = [targetInstitutionId];
     let paramIndex = 2;
 
     // Add tag filter
@@ -163,9 +163,10 @@ export const getCustomers = async (
     });
   } catch (error) {
     console.error('Error getting customers:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Failed to get customers';
     res.status(500).json({
       status: 'error',
-      message: 'Failed to get customers',
+      message: errorMessage,
     });
   }
 };
@@ -233,9 +234,10 @@ export const getCustomer = async (
     });
   } catch (error) {
     console.error('Error getting customer:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Failed to get customer';
     res.status(500).json({
       status: 'error',
-      message: 'Failed to get customer',
+      message: errorMessage,
     });
   }
 };
@@ -356,11 +358,7 @@ export const createCustomer = async (
 
     // Send welcome email (optional - can be toggled)
     try {
-      await sendEmail({
-        to: email,
-        subject: 'Welcome to Saintara',
-        text: `Hello ${name},\n\nWelcome to Saintara! Your account has been created successfully.\n\nYou can now log in with your email and password.\n\nBest regards,\nSaintara Team`,
-      });
+      await emailService.sendWelcomeEmail(email, name);
     } catch (emailError) {
       console.error('Failed to send welcome email:', emailError);
       // Continue even if email fails
@@ -374,9 +372,10 @@ export const createCustomer = async (
     });
   } catch (error) {
     console.error('Error creating customer:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Failed to create customer';
     res.status(500).json({
       status: 'error',
-      message: 'Failed to create customer',
+      message: errorMessage,
     });
   }
 };
@@ -399,7 +398,7 @@ export const updateCustomer = async (
 
     // Build dynamic update query
     const updateFields: string[] = [];
-    const updateValues: any[] = [];
+    const updateValues: (string | boolean | number)[] = [];
     let paramIndex = 1;
 
     const allowedFields = [
@@ -457,9 +456,10 @@ export const updateCustomer = async (
     });
   } catch (error) {
     console.error('Error updating customer:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Failed to update customer';
     res.status(500).json({
       status: 'error',
-      message: 'Failed to update customer',
+      message: errorMessage,
     });
   }
 };
@@ -494,9 +494,10 @@ export const deleteCustomer = async (
     });
   } catch (error) {
     console.error('Error deleting customer:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Failed to delete customer';
     res.status(500).json({
       status: 'error',
-      message: 'Failed to delete customer',
+      message: errorMessage,
     });
   }
 };
@@ -560,9 +561,10 @@ export const downloadTemplate = async (
     res.send(buffer);
   } catch (error) {
     console.error('Error generating template:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Failed to generate template';
     res.status(500).json({
       status: 'error',
-      message: 'Failed to generate template',
+      message: errorMessage,
     });
   }
 };
@@ -753,11 +755,12 @@ export const bulkImportCustomers = async (
           console.error('Failed to send welcome email:', emailError);
         }
         */
-      } catch (error: any) {
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         errors.push({
           row: rowNumber,
           email: row.email,
-          error: error.message || 'Unknown error',
+          error: errorMessage,
         });
       }
     }
@@ -788,6 +791,7 @@ export const bulkImportCustomers = async (
     });
   } catch (error) {
     console.error('Error bulk importing customers:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Failed to import customers';
 
     // Clean up uploaded file if it exists
     if (req.file && fs.existsSync(req.file.path)) {
@@ -796,7 +800,7 @@ export const bulkImportCustomers = async (
 
     res.status(500).json({
       status: 'error',
-      message: 'Failed to import customers',
+      message: errorMessage,
     });
   }
 };
@@ -861,9 +865,10 @@ export const getImportHistory = async (
     });
   } catch (error) {
     console.error('Error getting import history:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Failed to get import history';
     res.status(500).json({
       status: 'error',
-      message: 'Failed to get import history',
+      message: errorMessage,
     });
   }
 };
