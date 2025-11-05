@@ -70,7 +70,7 @@ export default function Home() {
               <Link href="#harga" className="w-full sm:w-auto text-center text-white bg-saintara-yellow hover:bg-saintara-black focus:ring-4 focus:ring-yellow-300 font-semibold rounded-lg text-base px-8 py-3 transition-all transform hover:scale-105 duration-300" aria-label="Try test now">
                 Coba Tes Sekarang
               </Link>
-              <Link href="/register" className="w-full sm:w-auto text-center text-saintara-black border-2 border-saintara-black hover:bg-saintara-black hover:text-white font-semibold rounded-lg text-base px-8 py-3 transition-colors duration-300" aria-label="Register for partnership license">
+              <Link href="/partnership" className="w-full sm:w-auto text-center text-saintara-black border-2 border-saintara-black hover:bg-saintara-black hover:text-white font-semibold rounded-lg text-base px-8 py-3 transition-colors duration-300" aria-label="Register for partnership license">
                 Daftar Kemitraan Lisensi
               </Link>
             </div>
@@ -207,82 +207,143 @@ export default function Home() {
               Mulai perjalanan penemuan diri Anda hari ini.
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {/* Personal */}
-            <div className="flex flex-col p-8 bg-white rounded-2xl shadow-lg border-t-4 border-gray-300" data-aos="fade-up" data-aos-delay="200">
+            <div className="flex flex-col p-8 bg-white rounded-2xl shadow-lg border-t-4 border-gray-300 hover:border-saintara-yellow transition-all" data-aos="fade-up" data-aos-delay="200">
               <h3 className="text-2xl font-semibold font-poppins text-saintara-black">Personal</h3>
               <p className="mt-2 text-gray-500">Untuk individu yang ingin mengenal diri.</p>
               <div className="my-6">
-                <span className="text-5xl font-extrabold text-saintara-black">Rp150k</span>
+                <span className="text-4xl font-extrabold text-saintara-black">Rp150k</span>
               </div>
               <ul className="space-y-3 text-gray-600 flex-grow">
                 <li className="flex items-center">
                   <HiCheckCircle className="w-5 h-5 text-saintara-yellow mr-2" />
-                  Laporan Lengkap 35 Poin
+                  35 Atribut Lengkap
                 </li>
                 <li className="flex items-center">
                   <HiCheckCircle className="w-5 h-5 text-saintara-yellow mr-2" />
-                  Analisis Karakter Alami
+                  6 Framework Analisis
+                </li>
+                <li className="flex items-center">
+                  <HiCheckCircle className="w-5 h-5 text-saintara-yellow mr-2" />
+                  Rekomendasi Karier
                 </li>
               </ul>
-              <Link href="/register" className="mt-8 w-full text-center text-saintara-black border-2 border-saintara-black hover:bg-saintara-black hover:text-white font-semibold rounded-lg text-base px-8 py-3 transition-colors duration-300" aria-label="Choose individual package">
-                Pilih Paket
-              </Link>
+              <div className="mt-8 space-y-2">
+                <Link href="/products/personal" className="block w-full text-center text-saintara-yellow border-2 border-saintara-yellow hover:bg-saintara-yellow hover:text-white font-semibold rounded-lg text-base px-8 py-3 transition-colors duration-300" aria-label="Learn more about personal package">
+                  Pelajari Lebih Lanjut
+                </Link>
+                <Link href="/register?product=personal" className="block w-full text-center text-saintara-black border-2 border-saintara-black hover:bg-saintara-black hover:text-white font-semibold rounded-lg text-base px-8 py-3 transition-colors duration-300" aria-label="Choose individual package">
+                  Pilih Paket
+                </Link>
+              </div>
             </div>
 
-            {/* Pasangan - Popular */}
-            <div className="flex flex-col p-8 bg-saintara-yellow text-saintara-black rounded-2xl shadow-2xl border-t-4 border-saintara-black relative" data-aos="fade-up" data-aos-delay="300">
-              <span className="absolute top-0 right-6 -mt-4 bg-saintara-black text-white text-xs font-bold px-3 py-1 rounded-full">PALING POPULER</span>
-              <h3 className="text-2xl font-semibold font-poppins">Pasangan & Keluarga</h3>
-              <p className="mt-2 text-gray-700">Untuk memahami dinamika hubungan.</p>
+            {/* Organization */}
+            <div className="flex flex-col p-8 bg-white rounded-2xl shadow-lg border-t-4 border-gray-300 hover:border-saintara-yellow transition-all" data-aos="fade-up" data-aos-delay="300">
+              <h3 className="text-2xl font-semibold font-poppins text-saintara-black">Organization</h3>
+              <p className="mt-2 text-gray-500">Untuk perusahaan & organisasi.</p>
               <div className="my-6">
-                <span className="text-5xl font-extrabold">Rp250k</span>
-                <span className="text-gray-700">/2 Laporan</span>
+                <span className="text-2xl font-bold text-saintara-black">Rp100k</span>
+                <p className="text-sm text-gray-500">Mulai dari (bulk)</p>
+              </div>
+              <ul className="space-y-3 text-gray-600 flex-grow">
+                <li className="flex items-center">
+                  <HiCheckCircle className="w-5 h-5 text-saintara-yellow mr-2" />
+                  Analisis Tim
+                </li>
+                <li className="flex items-center">
+                  <HiCheckCircle className="w-5 h-5 text-saintara-yellow mr-2" />
+                  Dashboard Admin
+                </li>
+                <li className="flex items-center">
+                  <HiCheckCircle className="w-5 h-5 text-saintara-yellow mr-2" />
+                  Bulk Upload
+                </li>
+              </ul>
+              <div className="mt-8 space-y-2">
+                <Link href="/products/organization" className="block w-full text-center text-saintara-yellow border-2 border-saintara-yellow hover:bg-saintara-yellow hover:text-white font-semibold rounded-lg text-base px-8 py-3 transition-colors duration-300" aria-label="Learn more about organization package">
+                  Pelajari Lebih Lanjut
+                </Link>
+                <Link href="/register?product=organization" className="block w-full text-center text-saintara-black border-2 border-saintara-black hover:bg-saintara-black hover:text-white font-semibold rounded-lg text-base px-8 py-3 transition-colors duration-300" aria-label="Contact sales for organization package">
+                  Kontak Sales
+                </Link>
+              </div>
+            </div>
+
+            {/* School */}
+            <div className="flex flex-col p-8 bg-white rounded-2xl shadow-lg border-t-4 border-gray-300 hover:border-saintara-yellow transition-all" data-aos="fade-up" data-aos-delay="400">
+              <h3 className="text-2xl font-semibold font-poppins text-saintara-black">School</h3>
+              <p className="mt-2 text-gray-500">Untuk sekolah & universitas.</p>
+              <div className="my-6">
+                <span className="text-2xl font-bold text-saintara-black">Rp75k</span>
+                <p className="text-sm text-gray-500">Mulai dari (bulk)</p>
+              </div>
+              <ul className="space-y-3 text-gray-600 flex-grow">
+                <li className="flex items-center">
+                  <HiCheckCircle className="w-5 h-5 text-saintara-yellow mr-2" />
+                  Rekomendasi Jurusan
+                </li>
+                <li className="flex items-center">
+                  <HiCheckCircle className="w-5 h-5 text-saintara-yellow mr-2" />
+                  Parent Report
+                </li>
+                <li className="flex items-center">
+                  <HiCheckCircle className="w-5 h-5 text-saintara-yellow mr-2" />
+                  Counseling Support
+                </li>
+              </ul>
+              <div className="mt-8 space-y-2">
+                <Link href="/products/school" className="block w-full text-center text-saintara-yellow border-2 border-saintara-yellow hover:bg-saintara-yellow hover:text-white font-semibold rounded-lg text-base px-8 py-3 transition-colors duration-300" aria-label="Learn more about school package">
+                  Pelajari Lebih Lanjut
+                </Link>
+                <Link href="/register?product=school" className="block w-full text-center text-saintara-black border-2 border-saintara-black hover:bg-saintara-black hover:text-white font-semibold rounded-lg text-base px-8 py-3 transition-colors duration-300" aria-label="Contact sales for school package">
+                  Kontak Sales
+                </Link>
+              </div>
+            </div>
+
+            {/* Gift */}
+            <div className="flex flex-col p-8 bg-gradient-to-br from-saintara-yellow/30 to-white rounded-2xl shadow-2xl border-t-4 border-saintara-yellow relative" data-aos="fade-up" data-aos-delay="500">
+              <span className="absolute top-0 right-6 -mt-4 bg-saintara-yellow text-saintara-black text-xs font-bold px-3 py-1 rounded-full">GIFT CARD</span>
+              <h3 className="text-2xl font-semibold font-poppins text-saintara-black">Gift</h3>
+              <p className="mt-2 text-gray-700">Hadiah bermakna untuk orang tersayang.</p>
+              <div className="my-6">
+                <span className="text-4xl font-extrabold text-saintara-black">Rp175k</span>
               </div>
               <ul className="space-y-3 text-gray-700 flex-grow">
                 <li className="flex items-center">
                   <HiCheckCircle className="w-5 h-5 text-saintara-black mr-2" />
-                  Semua fitur Paket Personal
+                  Premium Report
                 </li>
                 <li className="flex items-center">
                   <HiCheckCircle className="w-5 h-5 text-saintara-black mr-2" />
-                  Analisis Kecocokan
+                  Digital Gift Card
                 </li>
                 <li className="flex items-center">
                   <HiCheckCircle className="w-5 h-5 text-saintara-black mr-2" />
-                  Saran Pengembangan Hubungan
+                  Custom Message
                 </li>
               </ul>
-              <Link href="/register" className="mt-8 w-full text-center text-saintara-yellow bg-saintara-black hover:bg-black hover:text-white font-semibold rounded-lg text-base px-8 py-3 transition-colors duration-300" aria-label="Choose couple package">
-                Pilih Paket
-              </Link>
-            </div>
-
-            {/* Tim & Bisnis */}
-            <div className="flex flex-col p-8 bg-white rounded-2xl shadow-lg border-t-4 border-gray-300" data-aos="fade-up" data-aos-delay="400">
-              <h3 className="text-2xl font-semibold font-poppins text-saintara-black">Tim & Bisnis</h3>
-              <p className="mt-2 text-gray-500">Untuk membangun tim yang solid & produktif.</p>
-              <div className="my-6">
-                <span className="text-3xl font-bold text-saintara-black">Hubungi Kami</span>
+              <div className="mt-8 space-y-2">
+                <Link href="/products/gift" className="block w-full text-center text-saintara-black border-2 border-saintara-black hover:bg-saintara-black hover:text-white font-semibold rounded-lg text-base px-8 py-3 transition-colors duration-300" aria-label="Learn more about gift package">
+                  Pelajari Lebih Lanjut
+                </Link>
+                <Link href="/register?product=gift" className="block w-full text-center text-white bg-saintara-black hover:bg-gray-800 font-semibold rounded-lg text-base px-8 py-3 transition-colors duration-300" aria-label="Buy gift card">
+                  Beli Gift Card
+                </Link>
               </div>
-              <ul className="space-y-3 text-gray-600 flex-grow">
-                <li className="flex items-center">
-                  <HiCheckCircle className="w-5 h-5 text-saintara-yellow mr-2" />
-                  Analisis per individu
-                </li>
-                <li className="flex items-center">
-                  <HiCheckCircle className="w-5 h-5 text-saintara-yellow mr-2" />
-                  Peta Dinamika Tim
-                </li>
-                <li className="flex items-center">
-                  <HiCheckCircle className="w-5 h-5 text-saintara-yellow mr-2" />
-                  Workshop & Konsultasi
-                </li>
-              </ul>
-              <Link href="/register" className="mt-8 w-full text-center text-saintara-black border-2 border-saintara-black hover:bg-saintara-black hover:text-white font-semibold rounded-lg text-base px-8 py-3 transition-colors duration-300" aria-label="Contact sales for team package">
-                Kontak Sales
-              </Link>
             </div>
+          </div>
+
+          {/* Additional Links */}
+          <div className="mt-12 text-center" data-aos="fade-up" data-aos-delay="600">
+            <Link href="/faq" className="inline-block text-saintara-yellow hover:underline font-semibold mr-6">
+              Lihat FAQ
+            </Link>
+            <Link href="/partnership" className="inline-block text-saintara-yellow hover:underline font-semibold">
+              Jadi Partner Saintara
+            </Link>
           </div>
         </div>
       </section>

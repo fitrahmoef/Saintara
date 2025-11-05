@@ -1,19 +1,30 @@
 'use client'
 
-import { useState, FormEvent } from 'react'
+import { useState, FormEvent, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
-import { HiMail, HiLockClosed, HiUser, HiEye, HiEyeOff } from 'react-icons/hi'
+import { HiMail, HiLockClosed, HiUser, HiEye, HiEyeOff, HiShoppingBag } from 'react-icons/hi'
 
 export default function RegisterPage() {
   const { register } = useAuth()
+  const searchParams = useSearchParams()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [productType, setProductType] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+
+  useEffect(() => {
+    // Get product from URL parameter
+    const product = searchParams.get('product')
+    if (product) {
+      setProductType(product)
+    }
+  }, [searchParams])
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -105,6 +116,35 @@ export default function RegisterPage() {
                   placeholder="nama@email.com"
                 />
               </div>
+            </div>
+
+            {/* Product Type Selection */}
+            <div>
+              <label htmlFor="productType" className="block text-sm font-medium text-gray-700 mb-2">
+                Paket Yang Diminati (Opsional)
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <HiShoppingBag className="h-5 w-5 text-gray-400" />
+                </div>
+                <select
+                  id="productType"
+                  value={productType}
+                  onChange={(e) => setProductType(e.target.value)}
+                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-saintara-yellow focus:border-saintara-yellow appearance-none bg-white"
+                >
+                  <option value="">Pilih Paket (Opsional)</option>
+                  <option value="personal">Personal - Rp 150.000</option>
+                  <option value="organization">Organization - Mulai Rp 100.000</option>
+                  <option value="school">School - Mulai Rp 75.000</option>
+                  <option value="gift">Gift - Rp 175.000</option>
+                </select>
+              </div>
+              {productType && (
+                <p className="mt-2 text-sm text-gray-500">
+                  Anda dapat membeli paket setelah registrasi selesai.
+                </p>
+              )}
             </div>
 
             {/* Password */}
