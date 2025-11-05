@@ -23,8 +23,37 @@ import approvalRoutes from './routes/approval.routes'
 import articleRoutes from './routes/article.routes'
 import institutionRoutes from './routes/institution.routes'
 import customerRoutes from './routes/customer.routes'
+import paymentRoutes from './routes/payment.routes'
+
+// Import payment service
+import { initializePaymentService } from './services/payment/PaymentService'
+import { PaymentConfig } from './types/payment.types'
+import { rawBodyMiddleware } from './middleware/rawBody'
 
 dotenv.config()
+
+// Initialize Payment Service
+const paymentConfig: PaymentConfig = {
+  stripe: process.env.STRIPE_SECRET_KEY && process.env.STRIPE_WEBHOOK_SECRET ? {
+    secretKey: process.env.STRIPE_SECRET_KEY,
+    webhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
+    publishableKey: process.env.STRIPE_PUBLISHABLE_KEY || '',
+  } : undefined,
+  xendit: process.env.XENDIT_SECRET_KEY && process.env.XENDIT_WEBHOOK_TOKEN ? {
+    secretKey: process.env.XENDIT_SECRET_KEY,
+    webhookToken: process.env.XENDIT_WEBHOOK_TOKEN,
+  } : undefined,
+  defaultProvider: (process.env.DEFAULT_PAYMENT_PROVIDER as any) || 'stripe',
+  defaultCurrency: process.env.DEFAULT_CURRENCY || 'USD',
+};
+
+try {
+  initializePaymentService(paymentConfig);
+  logger.info('✅ Payment service initialized successfully');
+} catch (error) {
+  logger.warn('⚠️  Payment service initialization failed. Payment gateway features will be unavailable.');
+  logger.warn(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+}
 
 const app: Application = express()
 const PORT = process.env.PORT || 5000
@@ -36,6 +65,10 @@ app.use(cors({
   credentials: true,
 }))
 app.use(morgan('combined', { stream: morganStream }))
+
+// Raw body middleware for webhooks (must be before express.json())
+app.use(rawBodyMiddleware)
+
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
@@ -85,6 +118,7 @@ app.use('/api/approvals', approvalRoutes)
 app.use('/api/articles', articleRoutes)
 app.use('/api/institutions', institutionRoutes)
 app.use('/api/customers', customerRoutes)
+app.use('/api/payments', paymentRoutes)
 
 // 404 Handler
 app.use((req: Request, res: Response) => {

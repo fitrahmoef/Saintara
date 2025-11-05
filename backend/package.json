@@ -39,9 +39,11 @@
     "nodemailer": "^6.9.9",
     "pdfkit": "^0.15.0",
     "pg": "^8.11.3",
+    "stripe": "^14.14.0",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.0",
     "winston": "^3.11.0",
+    "xendit-node": "^4.2.0",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
