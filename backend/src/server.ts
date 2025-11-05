@@ -21,6 +21,8 @@ import agentRoutes from './routes/agent.routes'
 import eventRoutes from './routes/event.routes'
 import approvalRoutes from './routes/approval.routes'
 import articleRoutes from './routes/article.routes'
+import institutionRoutes from './routes/institution.routes'
+import customerRoutes from './routes/customer.routes'
 
 dotenv.config()
 
@@ -81,6 +83,8 @@ app.use('/api/agents', agentRoutes)
 app.use('/api/events', eventRoutes)
 app.use('/api/approvals', approvalRoutes)
 app.use('/api/articles', articleRoutes)
+app.use('/api/institutions', institutionRoutes)
+app.use('/api/customers', customerRoutes)
 
 // 404 Handler
 app.use((req: Request, res: Response) => {
