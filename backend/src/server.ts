@@ -25,6 +25,9 @@ import articleRoutes from './routes/article.routes'
 import institutionRoutes from './routes/institution.routes'
 import customerRoutes from './routes/customer.routes'
 import paymentRoutes from './routes/payment.routes'
+import productRoutes from './routes/product.routes'
+import faqRoutes from './routes/faq.routes'
+import partnershipRoutes from './routes/partnership.routes'
 
 // Import payment service
 import { initializePaymentService } from './services/payment/PaymentService'
@@ -158,6 +161,9 @@ app.use('/api/articles', articleRoutes)
 app.use('/api/institutions', institutionRoutes)
 app.use('/api/customers', customerRoutes)
 app.use('/api/payments', paymentRoutes)
+app.use('/api/products', productRoutes)
+app.use('/api/faqs', faqRoutes)
+app.use('/api/partnership', partnershipRoutes)
 
 // 404 Handler
 app.use((req: Request, res: Response) => {
