@@ -89,7 +89,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
   try {
     // Find user
     const result = await pool.query(
-      'SELECT id, email, password, name, role FROM users WHERE email = $1',
+      'SELECT id, email, password, name, role, institution_id FROM users WHERE email = $1',
       [email]
     )
 
@@ -114,9 +114,19 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       return
     }
 
-    // Generate JWT
+    // Get user permissions
+    const { getUserPermissions } = await import('../utils/permission.utils')
+    const permissions = await getUserPermissions(user.id)
+
+    // Generate JWT with institution_id and permissions
     const token = jwt.sign(
-      { id: user.id, email: user.email, role: user.role },
+      {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        institution_id: user.institution_id,
+        permissions
+      },
       process.env.JWT_SECRET as string,
       { expiresIn: '7d' }
     )
@@ -129,8 +139,10 @@ export const login = async (req: Request, res: Response): Promise<void> => {
           email: user.email,
           name: user.name,
           role: user.role,
+          institution_id: user.institution_id,
         },
         token,
+        permissions,
       },
     })
   } catch (error) {
