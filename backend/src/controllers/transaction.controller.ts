@@ -141,11 +141,22 @@ export const getAllTransactions = async (req: Request, res: Response) => {
 
     const result = await pool.query(query, params);
 
-    // Get total count
-    const countQuery = `SELECT COUNT(*) FROM transactions t JOIN users u ON t.user_id = u.id WHERE 1=1 ${
-      status ? `AND t.status = '${status}'` : ''
-    } ${search ? `AND (u.name ILIKE '%${search}%' OR u.email ILIKE '%${search}%' OR t.transaction_code ILIKE '%${search}%')` : ''}`;
-    const countResult = await pool.query(countQuery);
+    // Get total count with parameterized query to prevent SQL injection
+    let countQuery = `SELECT COUNT(*) FROM transactions t JOIN users u ON t.user_id = u.id WHERE 1=1`;
+    const countParams: any[] = [];
+    let countParamIndex = 1;
+
+    if (status) {
+      countQuery += ` AND t.status = $${countParamIndex++}`;
+      countParams.push(status);
+    }
+
+    if (search) {
+      countQuery += ` AND (u.name ILIKE $${countParamIndex} OR u.email ILIKE $${countParamIndex} OR t.transaction_code ILIKE $${countParamIndex})`;
+      countParams.push(`%${search}%`);
+    }
+
+    const countResult = await pool.query(countQuery, countParams);
 
     res.json({
       transactions: result.rows,
