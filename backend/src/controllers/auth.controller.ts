@@ -1,6 +1,7 @@
 import { Request, Response } from 'express'
 import { validationResult } from 'express-validator'
 import bcrypt from 'bcryptjs'
+import crypto from 'crypto'
 import jwt from 'jsonwebtoken'
 import pool from '../config/database'
 import { AuthRequest } from '../middleware/auth.middleware'
@@ -17,6 +18,14 @@ import {
 } from '../utils/token.utils'
 import { generateCSRFToken } from '../middleware/csrf.middleware'
 import logger from '../config/logger'
+
+/**
+ * Hash a token using SHA-256 for secure storage
+ * Prevents password reset token theft in case of database breach
+ */
+function hashToken(token: string): string {
+  return crypto.createHash('sha256').update(token).digest('hex')
+}
 
 export const register = async (req: Request, res: Response): Promise<void> => {
   const errors = validationResult(req)
@@ -45,18 +54,41 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10)
 
-    // Create user
+    // Create user with email_verified = false
     const result = await pool.query(
-      'INSERT INTO users (email, password, name, role) VALUES ($1, $2, $3, $4) RETURNING id, email, name, role, created_at',
-      [email, hashedPassword, name, 'user']
+      'INSERT INTO users (email, password, name, role, email_verified) VALUES ($1, $2, $3, $4, $5) RETURNING id, email, name, role, email_verified, created_at',
+      [email, hashedPassword, name, 'user', false]
     )
 
     const user = result.rows[0]
 
-    // Send welcome email (async, don't wait for it)
-    emailService.sendWelcomeEmail(user.email, user.name).catch(err =>
-      console.error('Failed to send welcome email:', err)
-    )
+    // Generate email verification token (32 bytes = 64 hex characters)
+    const verificationToken = crypto.randomBytes(32).toString('hex')
+    const expiresAt = new Date(Date.now() + 24 * 3600000) // 24 hours from now
+
+    // Hash token before storing
+    const hashedVerificationToken = hashToken(verificationToken)
+
+    // Store email verification token
+    try {
+      await pool.query(
+        `INSERT INTO email_verification_tokens (user_id, token, expires_at)
+         VALUES ($1, $2, $3)`,
+        [user.id, hashedVerificationToken, expiresAt]
+      )
+    } catch (tokenError) {
+      // If table doesn't exist yet (migration not applied), log but continue
+      console.warn('Email verification token table may not exist yet:', tokenError)
+    }
+
+    // Send verification email (async, don't wait for it)
+    emailService.sendVerificationEmail(user.email, verificationToken, user.name).catch(err => {
+      console.error('Failed to send verification email:', err)
+      // Log token for development if email fails
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`Email verification token for ${user.email}: ${verificationToken}`)
+      }
+    })
 
     // Generate tokens
     const accessToken = generateAccessToken({
@@ -114,9 +146,9 @@ export const login = async (req: Request, res: Response): Promise<void> => {
   const { email, password } = req.body
 
   try {
-    // Find user
+    // Find user with lockout and verification status
     const result = await pool.query(
-      'SELECT id, email, password, name, role, institution_id FROM users WHERE email = $1',
+      'SELECT id, email, password, name, role, institution_id, email_verified, login_attempts, locked_until FROM users WHERE email = $1',
       [email]
     )
 
@@ -130,15 +162,74 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 
     const user = result.rows[0]
 
+    // Check if account is locked
+    if (user.locked_until && new Date(user.locked_until) > new Date()) {
+      const remainingMinutes = Math.ceil((new Date(user.locked_until).getTime() - Date.now()) / 60000)
+      res.status(423).json({
+        status: 'error',
+        message: `Account locked due to multiple failed login attempts. Try again in ${remainingMinutes} minute(s).`,
+      })
+      return
+    }
+
     // Verify password
     const isPasswordValid = await bcrypt.compare(password, user.password)
 
     if (!isPasswordValid) {
-      res.status(401).json({
-        status: 'error',
-        message: 'Invalid credentials',
-      })
+      // Increment failed login attempts
+      const loginAttempts = (user.login_attempts || 0) + 1
+      const maxAttempts = 5
+      const lockDuration = 15 // minutes
+
+      if (loginAttempts >= maxAttempts) {
+        // Lock account for 15 minutes
+        const lockedUntil = new Date(Date.now() + lockDuration * 60000)
+        try {
+          await pool.query(
+            'UPDATE users SET login_attempts = $1, locked_until = $2 WHERE id = $3',
+            [loginAttempts, lockedUntil, user.id]
+          )
+        } catch (updateError) {
+          // If columns don't exist yet (migration not applied), just log
+          console.warn('Account lockout columns may not exist yet:', updateError)
+        }
+
+        logger.warn(`Account locked for user ${user.email} after ${loginAttempts} failed attempts`)
+
+        res.status(423).json({
+          status: 'error',
+          message: `Account locked due to ${maxAttempts} failed login attempts. Try again in ${lockDuration} minutes.`,
+        })
+      } else {
+        // Increment attempts but don't lock yet
+        try {
+          await pool.query(
+            'UPDATE users SET login_attempts = $1 WHERE id = $2',
+            [loginAttempts, user.id]
+          )
+        } catch (updateError) {
+          console.warn('Account lockout columns may not exist yet:', updateError)
+        }
+
+        const remainingAttempts = maxAttempts - loginAttempts
+
+        res.status(401).json({
+          status: 'error',
+          message: 'Invalid credentials',
+          remainingAttempts,
+        })
+      }
       return
+    }
+
+    // Reset login attempts on successful login
+    try {
+      await pool.query(
+        'UPDATE users SET login_attempts = 0, locked_until = NULL WHERE id = $1',
+        [user.id]
+      )
+    } catch (updateError) {
+      console.warn('Account lockout columns may not exist yet:', updateError)
     }
 
     // Get user permissions
@@ -399,16 +490,19 @@ export const requestPasswordReset = async (req: Request, res: Response): Promise
 
     const user = userResult.rows[0]
 
-    // Generate reset token
-    const resetToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+    // Generate cryptographically secure reset token (32 bytes = 64 hex characters)
+    const resetToken = crypto.randomBytes(32).toString('hex')
     const expiresAt = new Date(Date.now() + 3600000) // 1 hour from now
 
-    // Store reset token
+    // Hash token before storing (security: prevents token theft from DB breach)
+    const hashedToken = hashToken(resetToken)
+
+    // Store hashed reset token
     await pool.query(
       `INSERT INTO password_reset_tokens (user_id, token, expires_at)
        VALUES ($1, $2, $3)
        ON CONFLICT (user_id) DO UPDATE SET token = $2, expires_at = $3, created_at = CURRENT_TIMESTAMP`,
-      [user.id, resetToken, expiresAt]
+      [user.id, hashedToken, expiresAt]
     )
 
     // Get user name for email
@@ -449,10 +543,13 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
   try {
     const { token, new_password } = req.body
 
-    // Find valid reset token
+    // Hash the provided token to compare with stored hash
+    const hashedToken = hashToken(token)
+
+    // Find valid reset token using hashed comparison
     const tokenResult = await pool.query(
       'SELECT user_id FROM password_reset_tokens WHERE token = $1 AND expires_at > CURRENT_TIMESTAMP',
-      [token]
+      [hashedToken]
     )
 
     if (tokenResult.rows.length === 0) {
@@ -639,6 +736,140 @@ export const revokeAllSessions = async (req: AuthRequest, res: Response): Promis
     res.status(500).json({
       status: 'error',
       message: 'Failed to revoke sessions',
+    })
+  }
+}
+
+/**
+ * Verify email address
+ */
+export const verifyEmail = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { token } = req.body
+
+    if (!token) {
+      res.status(400).json({
+        status: 'error',
+        message: 'Verification token required',
+      })
+      return
+    }
+
+    // Hash the provided token to compare with stored hash
+    const hashedToken = hashToken(token)
+
+    // Find valid verification token
+    const tokenResult = await pool.query(
+      'SELECT user_id FROM email_verification_tokens WHERE token = $1 AND expires_at > CURRENT_TIMESTAMP',
+      [hashedToken]
+    )
+
+    if (tokenResult.rows.length === 0) {
+      res.status(400).json({
+        status: 'error',
+        message: 'Invalid or expired verification token',
+      })
+      return
+    }
+
+    const userId = tokenResult.rows[0].user_id
+
+    // Update user email_verified status
+    await pool.query(
+      'UPDATE users SET email_verified = true, email_verified_at = CURRENT_TIMESTAMP WHERE id = $1',
+      [userId]
+    )
+
+    // Delete used verification token
+    await pool.query(
+      'DELETE FROM email_verification_tokens WHERE user_id = $1',
+      [userId]
+    )
+
+    logger.info(`Email verified for user ID: ${userId}`)
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Email verified successfully',
+    })
+  } catch (error) {
+    logger.error('Email verification error:', error)
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to verify email',
+    })
+  }
+}
+
+/**
+ * Resend verification email
+ */
+export const resendVerification = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.id
+
+    // Check if already verified
+    const userResult = await pool.query(
+      'SELECT email, name, email_verified FROM users WHERE id = $1',
+      [userId]
+    )
+
+    if (userResult.rows.length === 0) {
+      res.status(404).json({
+        status: 'error',
+        message: 'User not found',
+      })
+      return
+    }
+
+    const user = userResult.rows[0]
+
+    if (user.email_verified) {
+      res.status(400).json({
+        status: 'error',
+        message: 'Email already verified',
+      })
+      return
+    }
+
+    // Generate new verification token
+    const verificationToken = crypto.randomBytes(32).toString('hex')
+    const expiresAt = new Date(Date.now() + 24 * 3600000) // 24 hours
+
+    // Hash token before storing
+    const hashedToken = hashToken(verificationToken)
+
+    // Update or insert verification token
+    await pool.query(
+      `INSERT INTO email_verification_tokens (user_id, token, expires_at)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (user_id) DO UPDATE SET token = $2, expires_at = $3, created_at = CURRENT_TIMESTAMP`,
+      [userId, hashedToken, expiresAt]
+    )
+
+    // Send verification email
+    const emailSent = await emailService.sendVerificationEmail(user.email, verificationToken, user.name)
+
+    if (!emailSent.success) {
+      logger.error(`Failed to send verification email to ${user.email}`)
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`Verification token for ${user.email}: ${verificationToken}`)
+      }
+    }
+
+    logger.info(`Verification email resent to: ${user.email}`)
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Verification email sent',
+      // Include token in dev mode only
+      ...(process.env.NODE_ENV === 'development' && { devToken: verificationToken }),
+    })
+  } catch (error) {
+    logger.error('Resend verification error:', error)
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to resend verification email',
     })
   }
 }

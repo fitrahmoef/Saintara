@@ -44,8 +44,20 @@ pool.on('connect', () => {
 })
 
 pool.on('error', (err) => {
+  // FIXED: Don't crash server on DB error - log and handle gracefully
   console.error('❌ Unexpected error on idle client', err)
-  process.exit(-1)
+
+  // Log critical error but don't crash the server
+  // The error will be handled in individual queries
+  if (err.message.includes('Connection terminated') ||
+      err.message.includes('ECONNREFUSED') ||
+      err.message.includes('ETIMEDOUT')) {
+    console.error('🔴 CRITICAL: Database connection lost. Attempting to reconnect...')
+    // Pool will automatically attempt to reconnect on next query
+  }
+
+  // Don't call process.exit() - let the app continue running
+  // Individual queries will handle connection errors appropriately
 })
 
 // Helper function to test database connection

@@ -8,7 +8,7 @@ import { AuthRequest } from '../middleware/auth.middleware';
 import pool from '../config/database';
 import { validationResult } from 'express-validator';
 import bcrypt from 'bcryptjs';
-import XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 import fs from 'fs';
 import {
   BulkImportCustomerDto,
@@ -510,43 +510,38 @@ export const downloadTemplate = async (
   res: Response
 ): Promise<void> => {
   try {
-    // Create workbook and worksheet
-    const workbook = XLSX.utils.book_new();
+    // Create workbook and worksheet with ExcelJS
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Customers');
 
-    // Template data with example row
-    const templateData = [
-      {
-        email: 'example@email.com',
-        name: 'John Doe',
-        password: 'password123',
-        phone: '08123456789',
-        gender: 'male',
-        blood_type: 'O',
-        country: 'Indonesia',
-        city: 'Jakarta',
-        nickname: 'Johnny',
-      },
+    // Define columns with headers and widths
+    worksheet.columns = [
+      { header: 'email', key: 'email', width: 25 },
+      { header: 'name', key: 'name', width: 20 },
+      { header: 'password', key: 'password', width: 15 },
+      { header: 'phone', key: 'phone', width: 15 },
+      { header: 'gender', key: 'gender', width: 10 },
+      { header: 'blood_type', key: 'blood_type', width: 12 },
+      { header: 'country', key: 'country', width: 15 },
+      { header: 'city', key: 'city', width: 15 },
+      { header: 'nickname', key: 'nickname', width: 15 },
     ];
 
-    const worksheet = XLSX.utils.json_to_sheet(templateData);
-
-    // Set column widths
-    worksheet['!cols'] = [
-      { wch: 25 }, // email
-      { wch: 20 }, // name
-      { wch: 15 }, // password
-      { wch: 15 }, // phone
-      { wch: 10 }, // gender
-      { wch: 12 }, // blood_type
-      { wch: 15 }, // country
-      { wch: 15 }, // city
-      { wch: 15 }, // nickname
-    ];
-
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Customers');
+    // Add example row
+    worksheet.addRow({
+      email: 'example@email.com',
+      name: 'John Doe',
+      password: 'password123',
+      phone: '08123456789',
+      gender: 'male',
+      blood_type: 'O',
+      country: 'Indonesia',
+      city: 'Jakarta',
+      nickname: 'Johnny',
+    });
 
     // Generate buffer
-    const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+    const buffer = await workbook.xlsx.writeBuffer();
 
     // Set headers
     res.setHeader(
@@ -622,11 +617,33 @@ export const bulkImportCustomers = async (
 
     const currentUsers = parseInt(currentUsersResult.rows[0].count);
 
-    // Read the uploaded file
-    const workbook = XLSX.readFile(req.file.path);
-    const sheetName = workbook.SheetNames[0];
-    const worksheet = workbook.Sheets[sheetName];
-    const data: BulkImportCustomerDto[] = XLSX.utils.sheet_to_json(worksheet);
+    // Read the uploaded file with ExcelJS
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.readFile(req.file.path);
+    const worksheet = workbook.worksheets[0];
+
+    // Convert worksheet to JSON (skip header row)
+    const data: BulkImportCustomerDto[] = [];
+    const headers: string[] = [];
+
+    worksheet.eachRow((row, rowNumber) => {
+      if (rowNumber === 1) {
+        // Store headers
+        row.eachCell((cell) => {
+          headers.push(cell.value?.toString() || '');
+        });
+      } else {
+        // Convert row to object
+        const rowData: any = {};
+        row.eachCell((cell, colNumber) => {
+          const header = headers[colNumber - 1];
+          if (header) {
+            rowData[header] = cell.value;
+          }
+        });
+        data.push(rowData);
+      }
+    });
 
     if (data.length === 0) {
       // Clean up uploaded file
@@ -666,6 +683,20 @@ export const bulkImportCustomers = async (
     const errors: BulkImportError[] = [];
     let successCount = 0;
 
+    // OPTIMIZATION: Batch check for existing emails (prevents N+1 query problem)
+    const emailsToCheck = data
+      .filter(row => row.email)
+      .map(row => row.email.toLowerCase());
+
+    const existingEmailsResult = await pool.query(
+      'SELECT email FROM users WHERE LOWER(email) = ANY($1)',
+      [emailsToCheck]
+    );
+
+    const existingEmails = new Set(
+      existingEmailsResult.rows.map((r: any) => r.email.toLowerCase())
+    );
+
     for (let i = 0; i < data.length; i++) {
       const row = data[i];
       const rowNumber = i + 2; // +2 because Excel is 1-indexed and row 1 is header
@@ -692,13 +723,8 @@ export const bulkImportCustomers = async (
           continue;
         }
 
-        // Check if email already exists
-        const existingUser = await pool.query(
-          'SELECT id FROM users WHERE email = $1',
-          [row.email]
-        );
-
-        if (existingUser.rows.length > 0) {
+        // Check if email already exists (using pre-fetched set)
+        if (existingEmails.has(row.email.toLowerCase())) {
           errors.push({
             row: rowNumber,
             email: row.email,
