@@ -1,25 +1,38 @@
 'use client'
 
-import { useState, FormEvent } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { useAuth } from '@/contexts/AuthContext'
 import { HiMail, HiLockClosed, HiEye, HiEyeOff } from 'react-icons/hi'
+import { loginSchema, type LoginFormData } from '@/lib/validations/auth.schema'
+import { sanitizeEmail, sanitizeInput } from '@/lib/sanitize'
 
 export default function LoginPage() {
   const { login } = useAuth()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault()
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+  })
+
+  const onSubmit = async (data: LoginFormData) => {
     setError('')
     setIsLoading(true)
 
     try {
-      await login(email, password)
+      // Sanitize inputs before sending to API
+      const sanitizedEmail = sanitizeEmail(data.email)
+      const sanitizedPassword = sanitizeInput(data.password, 100)
+
+      await login(sanitizedEmail, sanitizedPassword)
     } catch (err: any) {
       setError(err.message || 'Login failed. Please try again.')
     } finally {
@@ -50,7 +63,7 @@ export default function LoginPage() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             {/* Email */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
@@ -63,13 +76,17 @@ export default function LoginPage() {
                 <input
                   id="email"
                   type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-saintara-yellow focus:border-saintara-yellow"
+                  {...register('email')}
+                  className={`block w-full pl-10 pr-3 py-3 border rounded-lg focus:ring-2 focus:ring-saintara-yellow focus:border-saintara-yellow ${
+                    errors.email ? 'border-red-500' : 'border-gray-300'
+                  }`}
                   placeholder="nama@email.com"
+                  autoComplete="email"
                 />
               </div>
+              {errors.email && (
+                <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+              )}
             </div>
 
             {/* Password */}
@@ -84,11 +101,12 @@ export default function LoginPage() {
                 <input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-saintara-yellow focus:border-saintara-yellow"
+                  {...register('password')}
+                  className={`block w-full pl-10 pr-10 py-3 border rounded-lg focus:ring-2 focus:ring-saintara-yellow focus:border-saintara-yellow ${
+                    errors.password ? 'border-red-500' : 'border-gray-300'
+                  }`}
                   placeholder="••••••••"
+                  autoComplete="current-password"
                 />
                 <button
                   type="button"
@@ -102,6 +120,9 @@ export default function LoginPage() {
                   )}
                 </button>
               </div>
+              {errors.password && (
+                <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
+              )}
             </div>
 
             {/* Remember & Forgot */}
