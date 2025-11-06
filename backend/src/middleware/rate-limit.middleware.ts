@@ -65,3 +65,19 @@ export const uploadLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
+
+// Token refresh rate limiter (5 attempts per 15 minutes)
+// SECURITY: Prevents token refresh abuse attacks
+export const refreshTokenLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // Limit each IP to 5 refresh attempts per 15 minutes
+  message: {
+    status: 'error',
+    message: 'Too many token refresh attempts, please try again after 15 minutes.',
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  // Don't skip any requests - count all attempts
+  skipSuccessfulRequests: false,
+  skipFailedRequests: false,
+});

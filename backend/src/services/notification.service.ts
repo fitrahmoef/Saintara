@@ -1,4 +1,5 @@
 import { Pool } from 'pg';
+import logger from '../config/logger'
 
 export type NotificationType =
   | 'test_assigned'
@@ -64,7 +65,7 @@ class NotificationService {
       const result = await this.pool.query(query, values);
       return result.rows[0];
     } catch (error) {
-      console.error('Error creating notification:', error);
+      logger.error('Error creating notification:', error);
       throw error;
     }
   }
@@ -105,7 +106,7 @@ class NotificationService {
       const result = await this.pool.query(query, values);
       return result.rows.length;
     } catch (error) {
-      console.error('Error creating bulk notifications:', error);
+      logger.error('Error creating bulk notifications:', error);
       throw error;
     }
   }
@@ -154,7 +155,7 @@ class NotificationService {
         total: parseInt(countResult.rows[0].total)
       };
     } catch (error) {
-      console.error('Error fetching user notifications:', error);
+      logger.error('Error fetching user notifications:', error);
       throw error;
     }
   }
@@ -173,7 +174,7 @@ class NotificationService {
       const result = await this.pool.query(query, [userId]);
       return parseInt(result.rows[0].count);
     } catch (error) {
-      console.error('Error getting unread count:', error);
+      logger.error('Error getting unread count:', error);
       return 0;
     }
   }
@@ -193,7 +194,7 @@ class NotificationService {
       const result = await this.pool.query(query, [notificationId, userId]);
       return result.rows.length > 0;
     } catch (error) {
-      console.error('Error marking notification as read:', error);
+      logger.error('Error marking notification as read:', error);
       return false;
     }
   }
@@ -213,7 +214,7 @@ class NotificationService {
       const result = await this.pool.query(query, [userId]);
       return result.rows.length;
     } catch (error) {
-      console.error('Error marking all notifications as read:', error);
+      logger.error('Error marking all notifications as read:', error);
       return 0;
     }
   }
@@ -232,7 +233,7 @@ class NotificationService {
       const result = await this.pool.query(query, [notificationId, userId]);
       return result.rows.length > 0;
     } catch (error) {
-      console.error('Error deleting notification:', error);
+      logger.error('Error deleting notification:', error);
       return false;
     }
   }
@@ -252,7 +253,7 @@ class NotificationService {
       const result = await this.pool.query(query);
       return result.rows.length;
     } catch (error) {
-      console.error('Error cleaning old notifications:', error);
+      logger.error('Error cleaning old notifications:', error);
       return 0;
     }
   }

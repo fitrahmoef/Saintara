@@ -65,11 +65,8 @@ api.interceptors.request.use(
       config.headers['X-CSRF-Token'] = csrfToken
     }
 
-    // Fallback: Check for token in localStorage for backward compatibility
-    const token = localStorage.getItem('token')
-    if (token && !config.headers.Authorization) {
-      config.headers.Authorization = `Bearer ${token}`
-    }
+    // SECURITY: Removed localStorage token fallback (XSS vulnerability)
+    // Authentication now uses httpOnly cookies exclusively
 
     return config
   },
@@ -108,9 +105,7 @@ api.interceptors.response.use(
         processQueue(refreshError as Error)
         isRefreshing = false
 
-        // Clear localStorage tokens
-        localStorage.removeItem('token')
-        localStorage.removeItem('user')
+        // SECURITY: No need to clear localStorage (using httpOnly cookies only)
 
         // Redirect to login
         if (typeof window !== 'undefined') {

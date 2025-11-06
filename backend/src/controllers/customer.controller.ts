@@ -4,19 +4,28 @@
  */
 
 import { Response } from 'express';
+import logger from '../config/logger'
 import { AuthRequest } from '../middleware/auth.middleware';
+import logger from '../config/logger'
 import pool from '../config/database';
+import logger from '../config/logger'
 import { validationResult } from 'express-validator';
+import logger from '../config/logger'
 import bcrypt from 'bcryptjs';
+import logger from '../config/logger'
 import ExcelJS from 'exceljs';
+import logger from '../config/logger'
 import fs from 'fs';
+import logger from '../config/logger'
 import {
+import logger from '../config/logger'
   BulkImportCustomerDto,
   BulkImportResult,
   BulkImportError,
   CustomerListQuery,
 } from '../types/institution.types';
 import { emailService } from '../services/email.service';
+import logger from '../config/logger'
 
 /**
  * Get customers for institution admin
@@ -162,7 +171,7 @@ export const getCustomers = async (
       },
     });
   } catch (error) {
-    console.error('Error getting customers:', error);
+    logger.error('Error getting customers:', error);
     const errorMessage = error instanceof Error ? error.message : 'Failed to get customers';
     res.status(500).json({
       status: 'error',
@@ -233,7 +242,7 @@ export const getCustomer = async (
       },
     });
   } catch (error) {
-    console.error('Error getting customer:', error);
+    logger.error('Error getting customer:', error);
     const errorMessage = error instanceof Error ? error.message : 'Failed to get customer';
     res.status(500).json({
       status: 'error',
@@ -331,7 +340,7 @@ export const createCustomer = async (
     }
 
     // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 12);
 
     // Create customer
     const result = await pool.query(
@@ -360,7 +369,7 @@ export const createCustomer = async (
     try {
       await emailService.sendWelcomeEmail(email, name);
     } catch (emailError) {
-      console.error('Failed to send welcome email:', emailError);
+      logger.error('Failed to send welcome email:', emailError);
       // Continue even if email fails
     }
 
@@ -371,7 +380,7 @@ export const createCustomer = async (
       },
     });
   } catch (error) {
-    console.error('Error creating customer:', error);
+    logger.error('Error creating customer:', error);
     const errorMessage = error instanceof Error ? error.message : 'Failed to create customer';
     res.status(500).json({
       status: 'error',
@@ -455,7 +464,7 @@ export const updateCustomer = async (
       },
     });
   } catch (error) {
-    console.error('Error updating customer:', error);
+    logger.error('Error updating customer:', error);
     const errorMessage = error instanceof Error ? error.message : 'Failed to update customer';
     res.status(500).json({
       status: 'error',
@@ -493,7 +502,7 @@ export const deleteCustomer = async (
       message: 'Customer deactivated successfully',
     });
   } catch (error) {
-    console.error('Error deleting customer:', error);
+    logger.error('Error deleting customer:', error);
     const errorMessage = error instanceof Error ? error.message : 'Failed to delete customer';
     res.status(500).json({
       status: 'error',
@@ -555,7 +564,7 @@ export const downloadTemplate = async (
 
     res.send(buffer);
   } catch (error) {
-    console.error('Error generating template:', error);
+    logger.error('Error generating template:', error);
     const errorMessage = error instanceof Error ? error.message : 'Failed to generate template';
     res.status(500).json({
       status: 'error',
@@ -744,7 +753,7 @@ export const bulkImportCustomers = async (
         }
 
         // Hash password
-        const hashedPassword = await bcrypt.hash(row.password, 10);
+        const hashedPassword = await bcrypt.hash(row.password, 12);
 
         // Insert customer
         await pool.query(
@@ -778,7 +787,7 @@ export const bulkImportCustomers = async (
             text: `Hello ${row.name},\n\nWelcome to Saintara! Your account has been created.\n\nBest regards,\nSaintara Team`,
           });
         } catch (emailError) {
-          console.error('Failed to send welcome email:', emailError);
+          logger.error('Failed to send welcome email:', emailError);
         }
         */
       } catch (error) {
@@ -816,7 +825,7 @@ export const bulkImportCustomers = async (
       message: `Import completed: ${successCount} successful, ${errors.length} failed`,
     });
   } catch (error) {
-    console.error('Error bulk importing customers:', error);
+    logger.error('Error bulk importing customers:', error);
     const errorMessage = error instanceof Error ? error.message : 'Failed to import customers';
 
     // Clean up uploaded file if it exists
@@ -890,7 +899,7 @@ export const getImportHistory = async (
       },
     });
   } catch (error) {
-    console.error('Error getting import history:', error);
+    logger.error('Error getting import history:', error);
     const errorMessage = error instanceof Error ? error.message : 'Failed to get import history';
     res.status(500).json({
       status: 'error',

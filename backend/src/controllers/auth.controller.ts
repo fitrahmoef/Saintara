@@ -52,7 +52,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     }
 
     // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10)
+    const hashedPassword = await bcrypt.hash(password, 12)
 
     // Create user with email_verified = false
     const result = await pool.query(
@@ -78,16 +78,14 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       )
     } catch (tokenError) {
       // If table doesn't exist yet (migration not applied), log but continue
-      console.warn('Email verification token table may not exist yet:', tokenError)
+      logger.warn('Email verification token table may not exist yet:', tokenError)
     }
 
     // Send verification email (async, don't wait for it)
     emailService.sendVerificationEmail(user.email, verificationToken, user.name).catch(err => {
-      console.error('Failed to send verification email:', err)
-      // Log token for development if email fails
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`Email verification token for ${user.email}: ${verificationToken}`)
-      }
+      logger.error('Failed to send verification email:', err)
+      // SECURITY: Never log tokens - removed sensitive data logging
+      logger.warn(`Verification email failed for user ${user.email}. Check email service configuration.`)
     })
 
     // Generate tokens
@@ -125,7 +123,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       },
     })
   } catch (error) {
-    console.error('Register error:', error)
+    logger.error('Register error:', error)
     res.status(500).json({
       status: 'error',
       message: 'Registration failed',
@@ -191,7 +189,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
           )
         } catch (updateError) {
           // If columns don't exist yet (migration not applied), just log
-          console.warn('Account lockout columns may not exist yet:', updateError)
+          logger.warn('Account lockout columns may not exist yet:', updateError)
         }
 
         logger.warn(`Account locked for user ${user.email} after ${loginAttempts} failed attempts`)
@@ -208,7 +206,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
             [loginAttempts, user.id]
           )
         } catch (updateError) {
-          console.warn('Account lockout columns may not exist yet:', updateError)
+          logger.warn('Account lockout columns may not exist yet:', updateError)
         }
 
         const remainingAttempts = maxAttempts - loginAttempts
@@ -229,7 +227,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         [user.id]
       )
     } catch (updateError) {
-      console.warn('Account lockout columns may not exist yet:', updateError)
+      logger.warn('Account lockout columns may not exist yet:', updateError)
     }
 
     // Get user permissions
@@ -275,7 +273,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       },
     })
   } catch (error) {
-    console.error('Login error:', error)
+    logger.error('Login error:', error)
     res.status(500).json({
       status: 'error',
       message: 'Login failed',
@@ -305,7 +303,7 @@ export const getProfile = async (req: AuthRequest, res: Response): Promise<void>
       },
     })
   } catch (error) {
-    console.error('Get profile error:', error)
+    logger.error('Get profile error:', error)
     res.status(500).json({
       status: 'error',
       message: 'Failed to fetch profile',
@@ -409,7 +407,7 @@ export const updateProfile = async (req: AuthRequest, res: Response): Promise<vo
       },
     })
   } catch (error) {
-    console.error('Update profile error:', error)
+    logger.error('Update profile error:', error)
     res.status(500).json({
       status: 'error',
       message: 'Failed to update profile',
@@ -448,7 +446,7 @@ export const changePassword = async (req: AuthRequest, res: Response): Promise<v
     }
 
     // Hash new password
-    const hashedPassword = await bcrypt.hash(new_password, 10)
+    const hashedPassword = await bcrypt.hash(new_password, 12)
 
     // Update password
     await pool.query(
@@ -461,7 +459,7 @@ export const changePassword = async (req: AuthRequest, res: Response): Promise<v
       message: 'Password changed successfully',
     })
   } catch (error) {
-    console.error('Change password error:', error)
+    logger.error('Change password error:', error)
     res.status(500).json({
       status: 'error',
       message: 'Failed to change password',
@@ -519,9 +517,9 @@ export const requestPasswordReset = async (req: Request, res: Response): Promise
     )
 
     if (!emailSent) {
-      console.error(`Failed to send password reset email to ${email}`)
-      // Log token for development if email fails
-      console.log(`Password reset token for ${email}: ${resetToken}`)
+      logger.error(`Failed to send password reset email to ${email}`)
+      // SECURITY: Never log tokens - removed sensitive data logging
+      logger.warn('Password reset email failed. Check email service configuration.')
     }
 
     res.status(200).json({
@@ -531,7 +529,7 @@ export const requestPasswordReset = async (req: Request, res: Response): Promise
       ...(process.env.NODE_ENV === 'development' && { devToken: resetToken }),
     })
   } catch (error) {
-    console.error('Request password reset error:', error)
+    logger.error('Request password reset error:', error)
     res.status(500).json({
       status: 'error',
       message: 'Failed to process request',
@@ -563,7 +561,7 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
     const userId = tokenResult.rows[0].user_id
 
     // Hash new password
-    const hashedPassword = await bcrypt.hash(new_password, 10)
+    const hashedPassword = await bcrypt.hash(new_password, 12)
 
     // Update password
     await pool.query(
@@ -582,7 +580,7 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
       message: 'Password reset successfully',
     })
   } catch (error) {
-    console.error('Reset password error:', error)
+    logger.error('Reset password error:', error)
     res.status(500).json({
       status: 'error',
       message: 'Failed to reset password',
@@ -852,9 +850,8 @@ export const resendVerification = async (req: AuthRequest, res: Response): Promi
 
     if (!emailSent.success) {
       logger.error(`Failed to send verification email to ${user.email}`)
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`Verification token for ${user.email}: ${verificationToken}`)
-      }
+      // SECURITY: Never log tokens - removed sensitive data logging
+      logger.warn('Verification email failed. Check email service configuration.')
     }
 
     logger.info(`Verification email resent to: ${user.email}`)

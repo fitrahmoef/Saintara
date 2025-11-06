@@ -1,6 +1,9 @@
 import { Response } from 'express'
+import logger from '../config/logger'
 import pool from '../config/database'
+import logger from '../config/logger'
 import { AuthRequest } from '../middleware/auth.middleware'
+import logger from '../config/logger'
 
 // Get all test questions
 export const getTestQuestions = async (req: AuthRequest, res: Response): Promise<void> => {
@@ -16,7 +19,7 @@ export const getTestQuestions = async (req: AuthRequest, res: Response): Promise
       },
     })
   } catch (error) {
-    console.error('Get questions error:', error)
+    logger.error('Get questions error:', error)
     res.status(500).json({
       status: 'error',
       message: 'Failed to fetch questions',
@@ -42,7 +45,7 @@ export const createTest = async (req: AuthRequest, res: Response): Promise<void>
       },
     })
   } catch (error) {
-    console.error('Create test error:', error)
+    logger.error('Create test error:', error)
     res.status(500).json({
       status: 'error',
       message: 'Failed to create test',
@@ -79,12 +82,24 @@ export const submitTest = async (req: AuthRequest, res: Response): Promise<void>
       return
     }
 
-    // Save answers
-    for (const answer of answers) {
+    // PERFORMANCE: Use batch INSERT instead of N+1 queries
+    // Build values array for batch insert: (test_id, question_id, answer_value)
+    const values: any[] = [];
+    const placeholders: string[] = [];
+
+    answers.forEach((answer, index) => {
+      const offset = index * 3;
+      placeholders.push(`($${offset + 1}, $${offset + 2}, $${offset + 3})`);
+      values.push(id, answer.question_id, answer.answer_value);
+    });
+
+    // Single batch INSERT instead of N queries
+    if (placeholders.length > 0) {
       await pool.query(
-        'INSERT INTO test_answers (test_id, question_id, answer_value) VALUES ($1, $2, $3)',
-        [id, answer.question_id, answer.answer_value]
-      )
+        `INSERT INTO test_answers (test_id, question_id, answer_value) VALUES ${placeholders.join(', ')}`,
+        values
+      );
+      logger.info(`Batch inserted ${answers.length} test answers for test ID: ${id}`);
     }
 
     // Calculate results
@@ -122,7 +137,7 @@ export const submitTest = async (req: AuthRequest, res: Response): Promise<void>
       },
     })
   } catch (error) {
-    console.error('Submit test error:', error)
+    logger.error('Submit test error:', error)
     res.status(500).json({
       status: 'error',
       message: 'Failed to submit test',
@@ -153,7 +168,7 @@ export const getUserTests = async (req: AuthRequest, res: Response): Promise<voi
       },
     })
   } catch (error) {
-    console.error('Get user tests error:', error)
+    logger.error('Get user tests error:', error)
     res.status(500).json({
       status: 'error',
       message: 'Failed to fetch tests',

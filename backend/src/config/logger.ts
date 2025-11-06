@@ -1,10 +1,62 @@
 import winston from 'winston';
 
+// Sensitive data sanitization
+const sensitiveKeys = ['password', 'token', 'secret', 'authorization', 'cookie', 'apikey', 'api_key', 'access_token', 'refresh_token'];
+
+const sanitizeData = (data: any): any => {
+  if (typeof data === 'string') {
+    // Don't sanitize entire string messages, just log them
+    return data;
+  }
+
+  if (typeof data !== 'object' || data === null) {
+    return data;
+  }
+
+  if (Array.isArray(data)) {
+    return data.map(sanitizeData);
+  }
+
+  const sanitized: any = {};
+  for (const [key, value] of Object.entries(data)) {
+    const lowerKey = key.toLowerCase();
+    if (sensitiveKeys.some(sensitive => lowerKey.includes(sensitive))) {
+      sanitized[key] = '[REDACTED]';
+    } else if (typeof value === 'object' && value !== null) {
+      sanitized[key] = sanitizeData(value);
+    } else {
+      sanitized[key] = value;
+    }
+  }
+  return sanitized;
+};
+
+// Custom format to sanitize sensitive data
+const sanitizeFormat = winston.format((info) => {
+  // Sanitize metadata
+  if (info.meta) {
+    info.meta = sanitizeData(info.meta);
+  }
+
+  // Sanitize any other object properties except message, level, timestamp
+  const sanitized: any = { ...info };
+  Object.keys(info).forEach(key => {
+    if (!['message', 'level', 'timestamp', 'service', 'stack'].includes(key)) {
+      if (typeof info[key] === 'object' && info[key] !== null) {
+        sanitized[key] = sanitizeData(info[key]);
+      }
+    }
+  });
+
+  return sanitized;
+});
+
 // Define log format
 const logFormat = winston.format.combine(
   winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
   winston.format.errors({ stack: true }),
   winston.format.splat(),
+  sanitizeFormat(),
   winston.format.json()
 );
 

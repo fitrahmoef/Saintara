@@ -4,10 +4,15 @@
  */
 
 import { Response } from 'express';
+import logger from '../config/logger'
 import { AuthRequest } from '../middleware/auth.middleware';
+import logger from '../config/logger'
 import pool from '../config/database';
+import logger from '../config/logger'
 import { validationResult } from 'express-validator';
+import logger from '../config/logger'
 import {
+import logger from '../config/logger'
   Institution,
   CreateInstitutionDto,
   UpdateInstitutionDto,
@@ -15,6 +20,7 @@ import {
   AdminHierarchy,
 } from '../types/institution.types';
 import { getUserPermissions } from '../utils/permission.utils';
+import logger from '../config/logger'
 
 /**
  * Create a new institution (Superadmin only)
@@ -83,7 +89,7 @@ export const createInstitution = async (
       },
     });
   } catch (error) {
-    console.error('Error creating institution:', error);
+    logger.error('Error creating institution:', error);
     res.status(500).json({
       status: 'error',
       message: 'Failed to create institution',
@@ -171,7 +177,7 @@ export const getInstitutions = async (
       },
     });
   } catch (error) {
-    console.error('Error getting institutions:', error);
+    logger.error('Error getting institutions:', error);
     res.status(500).json({
       status: 'error',
       message: 'Failed to get institutions',
@@ -216,7 +222,7 @@ export const getInstitution = async (
       },
     });
   } catch (error) {
-    console.error('Error getting institution:', error);
+    logger.error('Error getting institution:', error);
     res.status(500).json({
       status: 'error',
       message: 'Failed to get institution',
@@ -292,7 +298,7 @@ export const updateInstitution = async (
       },
     });
   } catch (error) {
-    console.error('Error updating institution:', error);
+    logger.error('Error updating institution:', error);
     res.status(500).json({
       status: 'error',
       message: 'Failed to update institution',
@@ -345,7 +351,7 @@ export const deleteInstitution = async (
       message: 'Institution deactivated successfully',
     });
   } catch (error) {
-    console.error('Error deleting institution:', error);
+    logger.error('Error deleting institution:', error);
     res.status(500).json({
       status: 'error',
       message: 'Failed to delete institution',
@@ -383,7 +389,7 @@ export const getInstitutionStatistics = async (
       },
     });
   } catch (error) {
-    console.error('Error getting institution statistics:', error);
+    logger.error('Error getting institution statistics:', error);
     res.status(500).json({
       status: 'error',
       message: 'Failed to get institution statistics',
@@ -502,7 +508,7 @@ export const getInstitutionAnalytics = async (
       },
     });
   } catch (error) {
-    console.error('Error getting institution analytics:', error);
+    logger.error('Error getting institution analytics:', error);
     res.status(500).json({
       status: 'error',
       message: 'Failed to get institution analytics',
@@ -575,7 +581,7 @@ export const assignAdmin = async (
       message: 'Admin assigned successfully',
     });
   } catch (error) {
-    console.error('Error assigning admin:', error);
+    logger.error('Error assigning admin:', error);
     res.status(500).json({
       status: 'error',
       message: 'Failed to assign admin',
@@ -616,7 +622,7 @@ export const getInstitutionAdmins = async (
       },
     });
   } catch (error) {
-    console.error('Error getting institution admins:', error);
+    logger.error('Error getting institution admins:', error);
     res.status(500).json({
       status: 'error',
       message: 'Failed to get institution admins',
@@ -653,7 +659,7 @@ export const removeAdmin = async (
       message: 'Admin removed successfully',
     });
   } catch (error) {
-    console.error('Error removing admin:', error);
+    logger.error('Error removing admin:', error);
     res.status(500).json({
       status: 'error',
       message: 'Failed to remove admin',

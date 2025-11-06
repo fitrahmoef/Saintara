@@ -82,7 +82,7 @@ class SimpleCache {
     }
 
     if (expiredCount > 0) {
-      console.log(`🧹 Cache cleanup: Removed ${expiredCount} expired entries`);
+      logger.info(`🧹 Cache cleanup: Removed ${expiredCount} expired entries`);
     }
   }
 

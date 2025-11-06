@@ -1,5 +1,7 @@
 import nodemailer, { Transporter } from 'nodemailer';
+import logger from '../config/logger'
 import {
+import logger from '../config/logger'
   EmailConfig,
   SendEmailOptions,
   EmailSendResult,
@@ -24,7 +26,7 @@ class EmailService {
 
     // Skip initialization if email config is not provided (for development)
     if (!host || !port || !user || !pass) {
-      console.warn('Email service not configured. Email features will be disabled.');
+      logger.warn('Email service not configured. Email features will be disabled.');
       this.isConfigured = false;
       return;
     }
@@ -45,10 +47,10 @@ class EmailService {
     // Verify connection configuration
     this.transporter.verify((error) => {
       if (error) {
-        console.error('Email service configuration error:', error);
+        logger.error('Email service configuration error:', error);
         this.isConfigured = false;
       } else {
-        console.log('Email service ready to send messages');
+        logger.info('Email service ready to send messages');
       }
     });
   }
@@ -65,7 +67,7 @@ class EmailService {
    */
   async sendEmail(options: SendEmailOptions): Promise<EmailSendResult> {
     if (!this.transporter || !this.isConfigured) {
-      console.warn('Email service not available. Email not sent to:', options.to);
+      logger.warn('Email service not available. Email not sent to:', options.to);
       return {
         success: false,
         error: 'Email service not configured'
@@ -84,14 +86,14 @@ class EmailService {
       };
 
       const info = await this.transporter.sendMail(mailOptions);
-      console.log('Email sent successfully:', info.messageId);
+      logger.info('Email sent successfully:', info.messageId);
       return {
         success: true,
         messageId: info.messageId
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      console.error('Error sending email:', error);
+      logger.error('Error sending email:', error);
       return {
         success: false,
         error: errorMessage

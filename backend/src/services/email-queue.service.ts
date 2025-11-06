@@ -1,6 +1,9 @@
 import { Pool } from 'pg';
+import logger from '../config/logger'
 import { emailService } from './email.service';
+import logger from '../config/logger'
 import {
+import logger from '../config/logger'
   QueueEmailOptions,
   EmailQueueItem,
   EmailQueueStatus,
@@ -24,11 +27,11 @@ class EmailQueueService {
    */
   public startProcessor(): void {
     if (this.processingInterval) {
-      console.log('Email queue processor already running');
+      logger.info('Email queue processor already running');
       return;
     }
 
-    console.log('Starting email queue processor...');
+    logger.info('Starting email queue processor...');
     this.processingInterval = setInterval(
       () => this.processQueue(),
       this.PROCESS_INTERVAL_MS
@@ -45,7 +48,7 @@ class EmailQueueService {
     if (this.processingInterval) {
       clearInterval(this.processingInterval);
       this.processingInterval = null;
-      console.log('Email queue processor stopped');
+      logger.info('Email queue processor stopped');
     }
   }
 
@@ -77,7 +80,7 @@ class EmailQueueService {
       const result = await this.pool.query(query, values);
       return result.rows[0].id;
     } catch (error) {
-      console.error('Error queueing email:', error);
+      logger.error('Error queueing email:', error);
       throw error;
     }
   }
@@ -141,7 +144,7 @@ class EmailQueueService {
 
       return result.rows[0];
     } catch (error) {
-      console.error('Error fetching template:', error);
+      logger.error('Error fetching template:', error);
       return null;
     }
   }
@@ -155,7 +158,7 @@ class EmailQueueService {
     }
 
     if (!emailService.isReady()) {
-      console.warn('Email service not configured, skipping queue processing');
+      logger.warn('Email service not configured, skipping queue processing');
       return;
     }
 
@@ -185,7 +188,7 @@ class EmailQueueService {
         return;
       }
 
-      console.log(`Processing ${emails.length} emails from queue...`);
+      logger.info(`Processing ${emails.length} emails from queue...`);
 
       // Process emails in parallel
       await Promise.all(
@@ -193,7 +196,7 @@ class EmailQueueService {
       );
 
     } catch (error) {
-      console.error('Error processing email queue:', error);
+      logger.error('Error processing email queue:', error);
     } finally {
       this.isProcessing = false;
     }
@@ -250,7 +253,7 @@ class EmailQueueService {
       if (result.success) {
         // Mark as sent
         await this.markEmailSent(email.id);
-        console.log(`Email ${email.id} sent successfully`);
+        logger.info(`Email ${email.id} sent successfully`);
       } else {
         // Mark as failed and retry
         await this.markEmailFailed(
@@ -258,12 +261,12 @@ class EmailQueueService {
           result.error || 'Unknown error',
           email.attempts + 1
         );
-        console.error(`Email ${email.id} failed:`, result.error);
+        logger.error(`Email ${email.id} failed:`, result.error);
       }
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      console.error(`Error processing email ${email.id}:`, error);
+      logger.error(`Error processing email ${email.id}:`, error);
 
       await this.markEmailFailed(
         email.id,
@@ -347,7 +350,7 @@ class EmailQueueService {
       const result = await this.pool.query(query);
       return result.rows[0];
     } catch (error) {
-      console.error('Error getting queue stats:', error);
+      logger.error('Error getting queue stats:', error);
       return { pending: 0, processing: 0, sent: 0, failed: 0, total: 0 };
     }
   }
@@ -377,7 +380,7 @@ class EmailQueueService {
       const result = await this.pool.query(query, [limit]);
       return result.rows.length;
     } catch (error) {
-      console.error('Error retrying failed emails:', error);
+      logger.error('Error retrying failed emails:', error);
       return 0;
     }
   }
@@ -397,7 +400,7 @@ class EmailQueueService {
       const result = await this.pool.query(query);
       return result.rows.length;
     } catch (error) {
-      console.error('Error cleaning old emails:', error);
+      logger.error('Error cleaning old emails:', error);
       return 0;
     }
   }

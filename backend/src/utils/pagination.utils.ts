@@ -92,7 +92,7 @@ export function buildCursorQuery(
       queryParams.push(cursorId);
     } catch (error) {
       // Invalid cursor - ignore and start from beginning
-      console.warn('Invalid cursor provided, starting from beginning');
+      logger.warn('Invalid cursor provided, starting from beginning');
     }
   }
 

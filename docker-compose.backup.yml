@@ -1,0 +1,67 @@
+# Docker Compose - Database Backup Service
+#
+# This extends the main docker-compose.yml with automated backups
+#
+# Usage:
+#   docker-compose -f docker-compose.yml -f docker-compose.backup.yml up -d
+
+version: '3.8'
+
+services:
+  # Automated backup service using cron
+  db-backup:
+    image: postgres:15-alpine
+    container_name: saintara-db-backup
+    restart: unless-stopped
+
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=${DB_NAME:-saintara}
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - BACKUP_DIR=/backups
+      - RETENTION_DAYS=${BACKUP_RETENTION_DAYS:-30}
+      - S3_BUCKET=${S3_BACKUP_BUCKET:-}
+      - SLACK_WEBHOOK_URL=${SLACK_WEBHOOK_URL:-}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
+      - AWS_DEFAULT_REGION=${AWS_REGION:-us-east-1}
+
+    volumes:
+      - ./backend/scripts/backup-database.sh:/scripts/backup-database.sh:ro
+      - backup-data:/backups
+
+    networks:
+      - saintara-network
+
+    depends_on:
+      - postgres
+
+    # Run backup daily at 2 AM
+    command: >
+      sh -c "
+        apk add --no-cache dcron aws-cli &&
+        chmod +x /scripts/backup-database.sh &&
+        echo '0 2 * * * /scripts/backup-database.sh >> /var/log/backup.log 2>&1' | crontab - &&
+        echo 'Backup cron job installed. Running at 2 AM daily.' &&
+        crond -f -l 2
+      "
+
+    healthcheck:
+      test: ["CMD", "pgrep", "crond"]
+      interval: 1m
+      timeout: 5s
+      retries: 3
+
+volumes:
+  backup-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./backups  # Local backup directory
+
+networks:
+  saintara-network:
+    external: true

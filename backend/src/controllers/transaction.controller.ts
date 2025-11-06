@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
+import logger from '../config/logger'
 import pool from '../config/database';
+import logger from '../config/logger'
 
 // Create a new transaction
 export const createTransaction = async (req: Request, res: Response) => {
@@ -22,7 +24,7 @@ export const createTransaction = async (req: Request, res: Response) => {
       transaction: result.rows[0]
     });
   } catch (error) {
-    console.error('Create transaction error:', error);
+    logger.error('Create transaction error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -54,7 +56,7 @@ export const getUserTransactions = async (req: Request, res: Response) => {
       total: result.rowCount
     });
   } catch (error) {
-    console.error('Get transactions error:', error);
+    logger.error('Get transactions error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -76,7 +78,7 @@ export const getTransactionById = async (req: Request, res: Response) => {
 
     res.json({ transaction: result.rows[0] });
   } catch (error) {
-    console.error('Get transaction error:', error);
+    logger.error('Get transaction error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -105,7 +107,7 @@ export const uploadPaymentProof = async (req: Request, res: Response) => {
       transaction: result.rows[0]
     });
   } catch (error) {
-    console.error('Upload payment proof error:', error);
+    logger.error('Upload payment proof error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -163,7 +165,7 @@ export const getAllTransactions = async (req: Request, res: Response) => {
       total: parseInt(countResult.rows[0].count)
     });
   } catch (error) {
-    console.error('Get all transactions error:', error);
+    logger.error('Get all transactions error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -218,7 +220,7 @@ export const updateTransactionStatus = async (req: Request, res: Response) => {
       transaction: result.rows[0]
     });
   } catch (error) {
-    console.error('Update transaction error:', error);
+    logger.error('Update transaction error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -240,7 +242,7 @@ export const getTransactionStats = async (req: Request, res: Response) => {
 
     res.json({ stats: result.rows[0] });
   } catch (error) {
-    console.error('Get transaction stats error:', error);
+    logger.error('Get transaction stats error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };

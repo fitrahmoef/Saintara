@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
+import logger from '../config/logger'
 import pool from '../config/database';
+import logger from '../config/logger'
 
 // Get all agents (admin)
 export const getAllAgents = async (req: Request, res: Response) => {
@@ -34,7 +36,7 @@ export const getAllAgents = async (req: Request, res: Response) => {
 
     res.json({ agents: result.rows });
   } catch (error) {
-    console.error('Get all agents error:', error);
+    logger.error('Get all agents error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -85,7 +87,7 @@ export const createAgent = async (req: Request, res: Response) => {
       agent: result.rows[0]
     });
   } catch (error) {
-    console.error('Create agent error:', error);
+    logger.error('Create agent error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -122,7 +124,7 @@ export const getAgentById = async (req: Request, res: Response) => {
       sales: salesResult.rows
     });
   } catch (error) {
-    console.error('Get agent error:', error);
+    logger.error('Get agent error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -167,7 +169,7 @@ export const updateAgentStatus = async (req: Request, res: Response) => {
       agent: result.rows[0]
     });
   } catch (error) {
-    console.error('Update agent error:', error);
+    logger.error('Update agent error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -191,7 +193,7 @@ export const getAgentStats = async (req: Request, res: Response) => {
 
     res.json({ stats: result.rows[0] });
   } catch (error) {
-    console.error('Get agent stats error:', error);
+    logger.error('Get agent stats error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -248,7 +250,7 @@ export const recordAgentSale = async (req: Request, res: Response) => {
       sale: result.rows[0]
     });
   } catch (error) {
-    console.error('Record agent sale error:', error);
+    logger.error('Record agent sale error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -275,7 +277,7 @@ export const payAgentCommission = async (req: Request, res: Response) => {
       sale: result.rows[0]
     });
   } catch (error) {
-    console.error('Pay commission error:', error);
+    logger.error('Pay commission error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
