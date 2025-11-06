@@ -4,6 +4,7 @@ import {
   register,
   login,
   logout,
+  refreshToken,
   getProfile,
   updateProfile,
   changePassword,
@@ -40,6 +41,9 @@ router.post(
 
 // Logout (Protected)
 router.post('/logout', authenticateToken, logout)
+
+// Refresh Token
+router.post('/refresh', refreshToken)
 
 // Get Profile (Protected)
 router.get('/profile', authenticateToken, getProfile)

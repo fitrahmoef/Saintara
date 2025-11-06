@@ -128,7 +128,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     const { getUserPermissions } = await import('../utils/permission.utils')
     const permissions = await getUserPermissions(user.id)
 
-    // Generate JWT with institution_id and permissions
+    // Generate JWT with institution_id and permissions (short-lived)
     const token = jwt.sign(
       {
         id: user.id,
@@ -138,15 +138,33 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         permissions
       },
       process.env.JWT_SECRET as string,
-      { expiresIn: '7d' }
+      { expiresIn: '15m' } // 15 minutes for better security
     )
 
-    // Set httpOnly cookie for enhanced security (prevents XSS attacks)
+    // Generate refresh token (long-lived)
+    const refreshTokenValue = crypto.randomBytes(64).toString('hex')
+    const refreshExpiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days
+
+    // Store refresh token in database
+    await pool.query(
+      `INSERT INTO refresh_tokens (user_id, token, expires_at, device_info, ip_address)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [user.id, refreshTokenValue, refreshExpiresAt, req.get('user-agent'), req.ip]
+    )
+
+    // Set httpOnly cookies for enhanced security (prevents XSS attacks)
     res.cookie('auth_token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production', // HTTPS only in production
       sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      maxAge: 15 * 60 * 1000, // 15 minutes
+    })
+
+    res.cookie('refresh_token', refreshTokenValue, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
     })
 
     res.status(200).json({
@@ -160,6 +178,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
           institution_id: user.institution_id,
         },
         token, // Still include for backward compatibility
+        refreshToken: refreshTokenValue, // For backward compatibility
         permissions,
       },
     })
@@ -475,8 +494,24 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
 
 export const logout = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    // Clear the httpOnly cookie
+    const userId = req.user?.id
+
+    // Revoke all refresh tokens for this user
+    if (userId) {
+      await pool.query(
+        'UPDATE refresh_tokens SET revoked_at = CURRENT_TIMESTAMP WHERE user_id = $1 AND revoked_at IS NULL',
+        [userId]
+      )
+    }
+
+    // Clear the httpOnly cookies
     res.clearCookie('auth_token', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+    })
+
+    res.clearCookie('refresh_token', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
@@ -491,6 +526,116 @@ export const logout = async (req: AuthRequest, res: Response): Promise<void> => 
     res.status(500).json({
       status: 'error',
       message: 'Failed to logout',
+    })
+  }
+}
+
+/**
+ * Refresh access token using refresh token
+ */
+export const refreshToken = async (req: Request, res: Response): Promise<void> => {
+  try {
+    // Get refresh token from cookie or body
+    const refreshTokenValue = req.cookies?.refresh_token || req.body.refresh_token
+
+    if (!refreshTokenValue) {
+      res.status(401).json({
+        status: 'error',
+        message: 'Refresh token required',
+      })
+      return
+    }
+
+    // Verify refresh token exists and is valid
+    const tokenResult = await pool.query(
+      `SELECT rt.*, u.email, u.role, u.institution_id
+       FROM refresh_tokens rt
+       JOIN users u ON rt.user_id = u.id
+       WHERE rt.token = $1
+         AND rt.expires_at > CURRENT_TIMESTAMP
+         AND rt.revoked_at IS NULL`,
+      [refreshTokenValue]
+    )
+
+    if (tokenResult.rows.length === 0) {
+      res.status(401).json({
+        status: 'error',
+        message: 'Invalid or expired refresh token',
+      })
+      return
+    }
+
+    const tokenData = tokenResult.rows[0]
+
+    // Get user permissions
+    const { getUserPermissions } = await import('../utils/permission.utils')
+    const permissions = await getUserPermissions(tokenData.user_id)
+
+    // Generate new access token
+    const accessToken = jwt.sign(
+      {
+        id: tokenData.user_id,
+        email: tokenData.email,
+        role: tokenData.role,
+        institution_id: tokenData.institution_id,
+        permissions,
+      },
+      process.env.JWT_SECRET as string,
+      { expiresIn: '15m' } // Short-lived access token
+    )
+
+    // Generate new refresh token (token rotation for security)
+    const newRefreshToken = crypto.randomBytes(64).toString('hex')
+    const refreshExpiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days
+
+    // Store new refresh token and mark old one as replaced
+    await pool.query(
+      `INSERT INTO refresh_tokens (user_id, token, expires_at, device_info, ip_address)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [
+        tokenData.user_id,
+        newRefreshToken,
+        refreshExpiresAt,
+        req.get('user-agent'),
+        req.ip,
+      ]
+    )
+
+    // Mark old refresh token as revoked and replaced
+    await pool.query(
+      `UPDATE refresh_tokens
+       SET revoked_at = CURRENT_TIMESTAMP, replaced_by_token = $1
+       WHERE token = $2`,
+      [newRefreshToken, refreshTokenValue]
+    )
+
+    // Set cookies
+    res.cookie('auth_token', accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 15 * 60 * 1000, // 15 minutes
+    })
+
+    res.cookie('refresh_token', newRefreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+    })
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        token: accessToken, // For backward compatibility
+        refreshToken: newRefreshToken, // For backward compatibility
+      },
+    })
+  } catch (error) {
+    logger.error('Refresh token error:', error)
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to refresh token',
     })
   }
 }
