@@ -2,11 +2,13 @@ import express, { Application, Request, Response, NextFunction } from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
 import morgan from 'morgan'
+import cookieParser from 'cookie-parser'
 import dotenv from 'dotenv'
 import swaggerUi from 'swagger-ui-express'
 import pool from './config/database'
 import { generalLimiter } from './middleware/rate-limit.middleware'
 import { csrfProtection } from './middleware/csrf.middleware'
+import { errorHandler, notFoundHandler } from './middleware/error-handler.middleware'
 import { swaggerSpec } from './config/swagger'
 import logger, { morganStream } from './config/logger'
 
@@ -105,6 +107,9 @@ app.use(cors({
 }))
 app.use(morgan('combined', { stream: morganStream }))
 
+// Cookie parser middleware (for httpOnly auth cookies)
+app.use(cookieParser())
+
 // Raw body middleware for webhooks (must be before express.json())
 app.use(rawBodyMiddleware)
 
@@ -165,28 +170,11 @@ app.use('/api/products', productRoutes)
 app.use('/api/faqs', faqRoutes)
 app.use('/api/partnership', partnershipRoutes)
 
-// 404 Handler
-app.use((req: Request, res: Response) => {
-  res.status(404).json({
-    status: 'error',
-    message: 'Route not found',
-  })
-})
+// 404 Handler - must be after all routes
+app.use(notFoundHandler)
 
-// Error Handler
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-  logger.error('Unhandled error:', {
-    error: err.message,
-    stack: err.stack,
-    path: req.path,
-    method: req.method,
-  })
-
-  res.status(500).json({
-    status: 'error',
-    message: process.env.NODE_ENV === 'production' ? 'Internal server error' : err.message,
-  })
-})
+// Global Error Handler - must be last
+app.use(errorHandler)
 
 // Start server
 app.listen(PORT, () => {

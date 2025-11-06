@@ -2,9 +2,11 @@ import { Request, Response } from 'express'
 import { validationResult } from 'express-validator'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
+import crypto from 'crypto'
 import pool from '../config/database'
 import { AuthRequest } from '../middleware/auth.middleware'
 import { emailService } from '../services/email.service'
+import logger from '../config/logger'
 
 export const register = async (req: Request, res: Response): Promise<void> => {
   const errors = validationResult(req)
@@ -43,7 +45,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 
     // Send welcome email (async, don't wait for it)
     emailService.sendWelcomeEmail(user.email, user.name).catch(err =>
-      console.error('Failed to send welcome email:', err)
+      logger.error('Failed to send welcome email:', err)
     )
 
     // Generate JWT
@@ -52,6 +54,14 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       process.env.JWT_SECRET as string,
       { expiresIn: '7d' }
     )
+
+    // Set httpOnly cookie for enhanced security (prevents XSS attacks)
+    res.cookie('auth_token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production', // HTTPS only in production
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    })
 
     res.status(201).json({
       status: 'success',
@@ -62,11 +72,11 @@ export const register = async (req: Request, res: Response): Promise<void> => {
           name: user.name,
           role: user.role,
         },
-        token,
+        token, // Still include for backward compatibility
       },
     })
   } catch (error) {
-    console.error('Register error:', error)
+    logger.error('Register error:', error)
     res.status(500).json({
       status: 'error',
       message: 'Registration failed',
@@ -131,6 +141,14 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       { expiresIn: '7d' }
     )
 
+    // Set httpOnly cookie for enhanced security (prevents XSS attacks)
+    res.cookie('auth_token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production', // HTTPS only in production
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    })
+
     res.status(200).json({
       status: 'success',
       data: {
@@ -141,12 +159,12 @@ export const login = async (req: Request, res: Response): Promise<void> => {
           role: user.role,
           institution_id: user.institution_id,
         },
-        token,
+        token, // Still include for backward compatibility
         permissions,
       },
     })
   } catch (error) {
-    console.error('Login error:', error)
+    logger.error('Login error:', error)
     res.status(500).json({
       status: 'error',
       message: 'Login failed',
@@ -176,7 +194,7 @@ export const getProfile = async (req: AuthRequest, res: Response): Promise<void>
       },
     })
   } catch (error) {
-    console.error('Get profile error:', error)
+    logger.error('Get profile error:', error)
     res.status(500).json({
       status: 'error',
       message: 'Failed to fetch profile',
@@ -280,7 +298,7 @@ export const updateProfile = async (req: AuthRequest, res: Response): Promise<vo
       },
     })
   } catch (error) {
-    console.error('Update profile error:', error)
+    logger.error('Update profile error:', error)
     res.status(500).json({
       status: 'error',
       message: 'Failed to update profile',
@@ -332,7 +350,7 @@ export const changePassword = async (req: AuthRequest, res: Response): Promise<v
       message: 'Password changed successfully',
     })
   } catch (error) {
-    console.error('Change password error:', error)
+    logger.error('Change password error:', error)
     res.status(500).json({
       status: 'error',
       message: 'Failed to change password',
@@ -361,8 +379,8 @@ export const requestPasswordReset = async (req: Request, res: Response): Promise
 
     const user = userResult.rows[0]
 
-    // Generate reset token
-    const resetToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+    // Generate reset token using cryptographically secure random bytes
+    const resetToken = crypto.randomBytes(32).toString('hex')
     const expiresAt = new Date(Date.now() + 3600000) // 1 hour from now
 
     // Store reset token
@@ -387,9 +405,9 @@ export const requestPasswordReset = async (req: Request, res: Response): Promise
     )
 
     if (!emailSent) {
-      console.error(`Failed to send password reset email to ${email}`)
+      logger.error(`Failed to send password reset email to ${email}`)
       // Log token for development if email fails
-      console.log(`Password reset token for ${email}: ${resetToken}`)
+      logger.info(`Password reset token for ${email}: ${resetToken}`)
     }
 
     res.status(200).json({
@@ -399,7 +417,7 @@ export const requestPasswordReset = async (req: Request, res: Response): Promise
       ...(process.env.NODE_ENV === 'development' && { devToken: resetToken }),
     })
   } catch (error) {
-    console.error('Request password reset error:', error)
+    logger.error('Request password reset error:', error)
     res.status(500).json({
       status: 'error',
       message: 'Failed to process request',
@@ -447,10 +465,32 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
       message: 'Password reset successfully',
     })
   } catch (error) {
-    console.error('Reset password error:', error)
+    logger.error('Reset password error:', error)
     res.status(500).json({
       status: 'error',
       message: 'Failed to reset password',
+    })
+  }
+}
+
+export const logout = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    // Clear the httpOnly cookie
+    res.clearCookie('auth_token', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+    })
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Logged out successfully',
+    })
+  } catch (error) {
+    logger.error('Logout error:', error)
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to logout',
     })
   }
 }

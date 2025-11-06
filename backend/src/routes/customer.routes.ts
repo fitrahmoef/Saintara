@@ -21,7 +21,7 @@ import {
   requirePermission,
 } from '../middleware/auth.middleware';
 import { upload } from '../config/multer.config';
-import { uploadLimiter } from '../middleware/rateLimit';
+import { uploadLimiter } from '../middleware/rate-limit.middleware';
 
 const router = Router();
 

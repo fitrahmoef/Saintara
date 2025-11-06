@@ -3,6 +3,7 @@ import { body } from 'express-validator'
 import {
   register,
   login,
+  logout,
   getProfile,
   updateProfile,
   changePassword,
@@ -36,6 +37,9 @@ router.post(
   ],
   login
 )
+
+// Logout (Protected)
+router.post('/logout', authenticateToken, logout)
 
 // Get Profile (Protected)
 router.get('/profile', authenticateToken, getProfile)
