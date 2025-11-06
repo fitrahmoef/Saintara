@@ -6,6 +6,10 @@ const nextConfig = {
   },
   // Enable standalone output for Docker
   output: 'standalone',
+  // Enable instrumentation for Sentry
+  experimental: {
+    instrumentationHook: true,
+  },
 }
 
 module.exports = nextConfig
