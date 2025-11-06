@@ -127,7 +127,7 @@ export const csrfProtection = (req: Request, res: Response, next: NextFunction):
     return;
   }
 
-  // Optionally validate custom CSRF token header (additional layer)
+  // SECURITY: Always enforce CSRF token validation (removed optional bypass)
   // For JWT-based APIs, the presence of a custom header proves it's an AJAX request, not a simple form POST
   if (!csrfToken && req.get('x-requested-with') !== 'XMLHttpRequest') {
     logger.warn(`CSRF validation failed: Missing CSRF token or X-Requested-With header for ${req.method} ${req.path}`, {
@@ -135,18 +135,12 @@ export const csrfProtection = (req: Request, res: Response, next: NextFunction):
       ip: req.ip,
     });
 
-    // For now, just log a warning but don't block (for backward compatibility)
-    // In production, you may want to enforce this strictly
-    logger.warn('CSRF token missing but allowing request (set ENFORCE_CSRF_TOKEN=true to enforce)');
-
-    if (process.env.ENFORCE_CSRF_TOKEN === 'true') {
-      res.status(403).json({
-        status: 'error',
-        error: 'CSRF validation failed',
-        message: 'Missing CSRF token. Please include X-CSRF-Token header in your request.',
-      });
-      return;
-    }
+    res.status(403).json({
+      status: 'error',
+      error: 'CSRF validation failed',
+      message: 'Missing CSRF token. Please include X-CSRF-Token header in your request.',
+    });
+    return;
   }
 
   // CSRF validation passed

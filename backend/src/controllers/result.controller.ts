@@ -1,7 +1,11 @@
 import { Response } from 'express'
+import logger from '../config/logger'
 import pool from '../config/database'
+import logger from '../config/logger'
 import { AuthRequest } from '../middleware/auth.middleware'
+import logger from '../config/logger'
 import PDFDocument from 'pdfkit'
+import logger from '../config/logger'
 
 // Get all user results
 export const getUserResults = async (req: AuthRequest, res: Response): Promise<void> => {
@@ -34,7 +38,7 @@ export const getUserResults = async (req: AuthRequest, res: Response): Promise<v
       },
     })
   } catch (error) {
-    console.error('Get results error:', error)
+    logger.error('Get results error:', error)
     res.status(500).json({
       status: 'error',
       message: 'Failed to fetch results',
@@ -82,7 +86,7 @@ export const getResultById = async (req: AuthRequest, res: Response): Promise<vo
       },
     })
   } catch (error) {
-    console.error('Get result error:', error)
+    logger.error('Get result error:', error)
     res.status(500).json({
       status: 'error',
       message: 'Failed to fetch result',
@@ -133,7 +137,7 @@ export const getLatestResult = async (req: AuthRequest, res: Response): Promise<
       },
     })
   } catch (error) {
-    console.error('Get latest result error:', error)
+    logger.error('Get latest result error:', error)
     res.status(500).json({
       status: 'error',
       message: 'Failed to fetch latest result',
@@ -287,7 +291,7 @@ export const downloadResultPDF = async (req: AuthRequest, res: Response): Promis
     // Finalize PDF
     doc.end()
   } catch (error) {
-    console.error('Download PDF error:', error)
+    logger.error('Download PDF error:', error)
     // If PDF generation fails, send JSON error response
     if (!res.headersSent) {
       res.status(500).json({

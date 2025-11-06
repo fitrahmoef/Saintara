@@ -4,10 +4,15 @@
  */
 
 import { Response } from 'express';
+import logger from '../config/logger'
 import { AuthRequest } from '../middleware/auth.middleware';
+import logger from '../config/logger'
 import pool from '../config/database';
+import logger from '../config/logger'
 import fs from 'fs/promises';
+import logger from '../config/logger'
 import path from 'path';
+import logger from '../config/logger'
 
 /**
  * Upload user avatar
@@ -51,7 +56,7 @@ export const uploadAvatar = async (
       try {
         await fs.unlink(oldAvatarPath);
       } catch (error) {
-        console.error('Failed to delete old avatar:', error);
+        logger.error('Failed to delete old avatar:', error);
         // Continue even if old file deletion fails
       }
     }
@@ -65,7 +70,7 @@ export const uploadAvatar = async (
       message: 'Avatar uploaded successfully',
     });
   } catch (error) {
-    console.error('Error uploading avatar:', error);
+    logger.error('Error uploading avatar:', error);
     const errorMessage = error instanceof Error ? error.message : 'Failed to upload avatar';
 
     // Delete uploaded file if database update fails
@@ -73,7 +78,7 @@ export const uploadAvatar = async (
       try {
         await fs.unlink(req.file.path);
       } catch (unlinkError) {
-        console.error('Failed to cleanup uploaded file:', unlinkError);
+        logger.error('Failed to cleanup uploaded file:', unlinkError);
       }
     }
 
@@ -180,7 +185,7 @@ export const uploadPaymentProof = async (
       try {
         await fs.unlink(oldProofPath);
       } catch (error) {
-        console.error('Failed to delete old payment proof:', error);
+        logger.error('Failed to delete old payment proof:', error);
         // Continue even if old file deletion fails
       }
     }
@@ -195,7 +200,7 @@ export const uploadPaymentProof = async (
       message: 'Payment proof uploaded successfully',
     });
   } catch (error) {
-    console.error('Error uploading payment proof:', error);
+    logger.error('Error uploading payment proof:', error);
     const errorMessage = error instanceof Error ? error.message : 'Failed to upload payment proof';
 
     // Delete uploaded file if operation fails
@@ -203,7 +208,7 @@ export const uploadPaymentProof = async (
       try {
         await fs.unlink(req.file.path);
       } catch (unlinkError) {
-        console.error('Failed to cleanup uploaded file:', unlinkError);
+        logger.error('Failed to cleanup uploaded file:', unlinkError);
       }
     }
 
@@ -248,7 +253,7 @@ export const deleteAvatar = async (
     try {
       await fs.unlink(avatarPath);
     } catch (error) {
-      console.error('Failed to delete avatar file:', error);
+      logger.error('Failed to delete avatar file:', error);
       // Continue even if file deletion fails
     }
 
@@ -263,7 +268,7 @@ export const deleteAvatar = async (
       message: 'Avatar deleted successfully',
     });
   } catch (error) {
-    console.error('Error deleting avatar:', error);
+    logger.error('Error deleting avatar:', error);
     const errorMessage = error instanceof Error ? error.message : 'Failed to delete avatar';
     res.status(500).json({
       status: 'error',
@@ -329,7 +334,7 @@ export const serveFile = async (
     // Serve the file
     res.sendFile(filePath);
   } catch (error) {
-    console.error('Error serving file:', error);
+    logger.error('Error serving file:', error);
     const errorMessage = error instanceof Error ? error.message : 'Failed to serve file';
     res.status(500).json({
       status: 'error',

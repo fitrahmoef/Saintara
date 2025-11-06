@@ -1,6 +1,9 @@
 import { Response } from 'express'
+import logger from '../config/logger'
 import pool from '../config/database'
+import logger from '../config/logger'
 import { AuthRequest } from '../middleware/auth.middleware'
+import logger from '../config/logger'
 
 // Get all test questions
 export const getTestQuestions = async (req: AuthRequest, res: Response): Promise<void> => {
@@ -16,7 +19,7 @@ export const getTestQuestions = async (req: AuthRequest, res: Response): Promise
       },
     })
   } catch (error) {
-    console.error('Get questions error:', error)
+    logger.error('Get questions error:', error)
     res.status(500).json({
       status: 'error',
       message: 'Failed to fetch questions',
@@ -42,7 +45,7 @@ export const createTest = async (req: AuthRequest, res: Response): Promise<void>
       },
     })
   } catch (error) {
-    console.error('Create test error:', error)
+    logger.error('Create test error:', error)
     res.status(500).json({
       status: 'error',
       message: 'Failed to create test',
@@ -122,7 +125,7 @@ export const submitTest = async (req: AuthRequest, res: Response): Promise<void>
       },
     })
   } catch (error) {
-    console.error('Submit test error:', error)
+    logger.error('Submit test error:', error)
     res.status(500).json({
       status: 'error',
       message: 'Failed to submit test',
@@ -153,7 +156,7 @@ export const getUserTests = async (req: AuthRequest, res: Response): Promise<voi
       },
     })
   } catch (error) {
-    console.error('Get user tests error:', error)
+    logger.error('Get user tests error:', error)
     res.status(500).json({
       status: 'error',
       message: 'Failed to fetch tests',

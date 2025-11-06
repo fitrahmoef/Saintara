@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
+import logger from '../config/logger'
 import pool from '../config/database';
+import logger from '../config/logger'
 
 // Get user vouchers
 export const getUserVouchers = async (req: Request, res: Response) => {
@@ -27,7 +29,7 @@ export const getUserVouchers = async (req: Request, res: Response) => {
       available: result.rows.filter((v: any) => !v.is_used && new Date(v.expires_at) > new Date()).length
     });
   } catch (error) {
-    console.error('Get vouchers error:', error);
+    logger.error('Get vouchers error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -73,7 +75,7 @@ export const useVoucher = async (req: Request, res: Response) => {
       voucher: updateResult.rows[0]
     });
   } catch (error) {
-    console.error('Use voucher error:', error);
+    logger.error('Use voucher error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -97,7 +99,7 @@ export const createVoucher = async (req: Request, res: Response) => {
       voucher: result.rows[0]
     });
   } catch (error) {
-    console.error('Create voucher error:', error);
+    logger.error('Create voucher error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -127,7 +129,7 @@ export const getAllVouchers = async (req: Request, res: Response) => {
 
     res.json({ vouchers: result.rows });
   } catch (error) {
-    console.error('Get all vouchers error:', error);
+    logger.error('Get all vouchers error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -148,7 +150,7 @@ export const deleteVoucher = async (req: Request, res: Response) => {
 
     res.json({ message: 'Voucher deleted successfully' });
   } catch (error) {
-    console.error('Delete voucher error:', error);
+    logger.error('Delete voucher error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };

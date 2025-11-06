@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
+import logger from '../config/logger'
 import pool from '../config/database';
+import logger from '../config/logger'
 
 // Get all approvals (admin)
 export const getAllApprovals = async (req: Request, res: Response) => {
@@ -37,7 +39,7 @@ export const getAllApprovals = async (req: Request, res: Response) => {
 
     res.json({ approvals: result.rows });
   } catch (error) {
-    console.error('Get all approvals error:', error);
+    logger.error('Get all approvals error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -64,7 +66,7 @@ export const getApprovalById = async (req: Request, res: Response) => {
 
     res.json({ approval: result.rows[0] });
   } catch (error) {
-    console.error('Get approval error:', error);
+    logger.error('Get approval error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -87,7 +89,7 @@ export const createApproval = async (req: Request, res: Response) => {
       approval: result.rows[0]
     });
   } catch (error) {
-    console.error('Create approval error:', error);
+    logger.error('Create approval error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -136,7 +138,7 @@ export const updateApprovalStatus = async (req: Request, res: Response) => {
       approval: result.rows[0]
     });
   } catch (error) {
-    console.error('Update approval error:', error);
+    logger.error('Update approval error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -150,7 +152,7 @@ export const getPendingApprovalsCount = async (req: Request, res: Response) => {
 
     res.json({ count: parseInt(result.rows[0].count) });
   } catch (error) {
-    console.error('Get pending count error:', error);
+    logger.error('Get pending count error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -172,7 +174,7 @@ export const getUserApprovals = async (req: Request, res: Response) => {
 
     res.json({ approvals: result.rows });
   } catch (error) {
-    console.error('Get user approvals error:', error);
+    logger.error('Get user approvals error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -193,7 +195,7 @@ export const deleteApproval = async (req: Request, res: Response) => {
 
     res.json({ message: 'Approval deleted successfully' });
   } catch (error) {
-    console.error('Delete approval error:', error);
+    logger.error('Delete approval error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };

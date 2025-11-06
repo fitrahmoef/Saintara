@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
+import logger from '../config/logger'
 import pool from '../config/database';
+import logger from '../config/logger'
 
 // Get all events
 export const getAllEvents = async (req: Request, res: Response) => {
@@ -29,7 +31,7 @@ export const getAllEvents = async (req: Request, res: Response) => {
 
     res.json({ events: result.rows });
   } catch (error) {
-    console.error('Get all events error:', error);
+    logger.error('Get all events error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -64,7 +66,7 @@ export const getEventById = async (req: Request, res: Response) => {
       registered_count: registrationsResult.rows.length
     });
   } catch (error) {
-    console.error('Get event error:', error);
+    logger.error('Get event error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -86,7 +88,7 @@ export const createEvent = async (req: Request, res: Response) => {
       event: result.rows[0]
     });
   } catch (error) {
-    console.error('Create event error:', error);
+    logger.error('Create event error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -155,7 +157,7 @@ export const updateEvent = async (req: Request, res: Response) => {
       event: result.rows[0]
     });
   } catch (error) {
-    console.error('Update event error:', error);
+    logger.error('Update event error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -176,7 +178,7 @@ export const deleteEvent = async (req: Request, res: Response) => {
 
     res.json({ message: 'Event deleted successfully' });
   } catch (error) {
-    console.error('Delete event error:', error);
+    logger.error('Delete event error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -237,7 +239,7 @@ export const registerForEvent = async (req: Request, res: Response) => {
       registration: result.rows[0]
     });
   } catch (error) {
-    console.error('Register for event error:', error);
+    logger.error('Register for event error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -268,7 +270,7 @@ export const cancelEventRegistration = async (req: Request, res: Response) => {
 
     res.json({ message: 'Registration cancelled successfully' });
   } catch (error) {
-    console.error('Cancel registration error:', error);
+    logger.error('Cancel registration error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -289,7 +291,7 @@ export const getUserEventRegistrations = async (req: Request, res: Response) => 
 
     res.json({ registrations: result.rows });
   } catch (error) {
-    console.error('Get user registrations error:', error);
+    logger.error('Get user registrations error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -316,7 +318,7 @@ export const markAttendance = async (req: Request, res: Response) => {
       registration: result.rows[0]
     });
   } catch (error) {
-    console.error('Mark attendance error:', error);
+    logger.error('Mark attendance error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };

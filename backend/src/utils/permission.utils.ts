@@ -4,7 +4,9 @@
  */
 
 import pool from '../config/database';
+import logger from '../config/logger'
 import { UserRole, PermissionScope, AuthContext } from '../types/institution.types';
+import logger from '../config/logger'
 
 /**
  * Check if a user has a specific permission
@@ -100,7 +102,7 @@ export async function checkUserPermission(
 
     return false;
   } catch (error) {
-    console.error('Error checking user permission:', error);
+    logger.error('Error checking user permission:', error);
     return false;
   }
 }
@@ -154,7 +156,7 @@ export async function getUserPermissions(userId: number): Promise<string[]> {
 
     return Array.from(permissions);
   } catch (error) {
-    console.error('Error getting user permissions:', error);
+    logger.error('Error getting user permissions:', error);
     return [];
   }
 }
@@ -190,7 +192,7 @@ export async function canAccessInstitution(
 
     return false;
   } catch (error) {
-    console.error('Error checking institution access:', error);
+    logger.error('Error checking institution access:', error);
     return false;
   }
 }
@@ -228,7 +230,7 @@ export async function getAccessibleInstitutions(
 
     return [];
   } catch (error) {
-    console.error('Error getting accessible institutions:', error);
+    logger.error('Error getting accessible institutions:', error);
     return [];
   }
 }
@@ -279,7 +281,7 @@ export async function canManageCustomer(
 
     return false;
   } catch (error) {
-    console.error('Error checking customer management permission:', error);
+    logger.error('Error checking customer management permission:', error);
     return false;
   }
 }
@@ -323,7 +325,7 @@ export async function getPermissionScope(
 
     return result.rows[0].scope as PermissionScope;
   } catch (error) {
-    console.error('Error getting permission scope:', error);
+    logger.error('Error getting permission scope:', error);
     return null;
   }
 }
@@ -353,7 +355,7 @@ export async function buildAuthContext(userId: number): Promise<AuthContext | nu
       permissions,
     };
   } catch (error) {
-    console.error('Error building auth context:', error);
+    logger.error('Error building auth context:', error);
     return null;
   }
 }

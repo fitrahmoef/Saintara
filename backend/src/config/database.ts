@@ -1,6 +1,9 @@
 import { Pool } from 'pg'
+import logger from '../config/logger'
 import { neon, neonConfig } from '@neondatabase/serverless'
+import logger from '../config/logger'
 import dotenv from 'dotenv'
+import logger from '../config/logger'
 
 dotenv.config()
 
@@ -13,7 +16,7 @@ let pool: Pool
 
 if (process.env.DATABASE_URL) {
   // Neon Database connection using connection string
-  console.log('📊 Configuring Neon Database connection...')
+  logger.info('📊 Configuring Neon Database connection...')
 
   pool = new Pool({
     connectionString: process.env.DATABASE_URL,
@@ -24,7 +27,7 @@ if (process.env.DATABASE_URL) {
   })
 } else {
   // Traditional PostgreSQL connection using individual parameters
-  console.log('📊 Configuring traditional PostgreSQL connection...')
+  logger.info('📊 Configuring traditional PostgreSQL connection...')
 
   pool = new Pool({
     host: process.env.DB_HOST,
@@ -40,19 +43,19 @@ if (process.env.DATABASE_URL) {
 
 // Connection event handlers
 pool.on('connect', () => {
-  console.log('✅ Database connected successfully')
+  logger.info('✅ Database connected successfully')
 })
 
 pool.on('error', (err) => {
   // FIXED: Don't crash server on DB error - log and handle gracefully
-  console.error('❌ Unexpected error on idle client', err)
+  logger.error('❌ Unexpected error on idle client', err)
 
   // Log critical error but don't crash the server
   // The error will be handled in individual queries
   if (err.message.includes('Connection terminated') ||
       err.message.includes('ECONNREFUSED') ||
       err.message.includes('ETIMEDOUT')) {
-    console.error('🔴 CRITICAL: Database connection lost. Attempting to reconnect...')
+    logger.error('🔴 CRITICAL: Database connection lost. Attempting to reconnect...')
     // Pool will automatically attempt to reconnect on next query
   }
 
@@ -66,10 +69,10 @@ export const testConnection = async (): Promise<boolean> => {
     const client = await pool.connect()
     const result = await client.query('SELECT NOW()')
     client.release()
-    console.log('✅ Database connection test successful:', result.rows[0].now)
+    logger.info('✅ Database connection test successful:', result.rows[0].now)
     return true
   } catch (error) {
-    console.error('❌ Database connection test failed:', error)
+    logger.error('❌ Database connection test failed:', error)
     return false
   }
 }

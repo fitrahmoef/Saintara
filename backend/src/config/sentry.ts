@@ -1,6 +1,9 @@
 import * as Sentry from '@sentry/node';
+import logger from '../config/logger'
 import { ProfilingIntegration } from '@sentry/profiling-node';
+import logger from '../config/logger'
 import { Express } from 'express';
+import logger from '../config/logger'
 
 /**
  * Initialize Sentry for error tracking and performance monitoring
@@ -9,7 +12,7 @@ export function initSentry(app: Express) {
   const dsn = process.env.SENTRY_DSN;
 
   if (!dsn) {
-    console.warn('⚠️  SENTRY_DSN not configured. Error tracking is disabled.');
+    logger.warn('⚠️  SENTRY_DSN not configured. Error tracking is disabled.');
     return;
   }
 
@@ -73,7 +76,7 @@ export function initSentry(app: Express) {
     },
   });
 
-  console.log('✅ Sentry initialized for error tracking');
+  logger.info('✅ Sentry initialized for error tracking');
 }
 
 /**

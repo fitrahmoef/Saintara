@@ -1,6 +1,9 @@
 import { Response } from 'express'
+import logger from '../config/logger'
 import pool from '../config/database'
+import logger from '../config/logger'
 import { AuthRequest } from '../middleware/auth.middleware'
+import logger from '../config/logger'
 
 // Get dashboard statistics
 export const getDashboardStats = async (req: AuthRequest, res: Response): Promise<void> => {
@@ -75,7 +78,7 @@ export const getDashboardStats = async (req: AuthRequest, res: Response): Promis
       },
     })
   } catch (error) {
-    console.error('Get dashboard stats error:', error)
+    logger.error('Get dashboard stats error:', error)
     res.status(500).json({
       status: 'error',
       message: 'Failed to fetch dashboard statistics',
@@ -125,7 +128,7 @@ export const getAllUsers = async (req: AuthRequest, res: Response): Promise<void
       },
     })
   } catch (error) {
-    console.error('Get all users error:', error)
+    logger.error('Get all users error:', error)
     res.status(500).json({
       status: 'error',
       message: 'Failed to fetch users',
@@ -179,7 +182,7 @@ export const getUserDetails = async (req: AuthRequest, res: Response): Promise<v
       },
     })
   } catch (error) {
-    console.error('Get user details error:', error)
+    logger.error('Get user details error:', error)
     res.status(500).json({
       status: 'error',
       message: 'Failed to fetch user details',

@@ -1,6 +1,9 @@
 import { Request, Response } from 'express';
+import logger from '../config/logger'
 import pool from '../config/database';
+import logger from '../config/logger'
 import { sanitizeArticle } from '../utils/xss-sanitizer';
+import logger from '../config/logger'
 
 // Get all articles
 export const getAllArticles = async (req: Request, res: Response) => {
@@ -69,7 +72,7 @@ export const getAllArticles = async (req: Request, res: Response) => {
       total: parseInt(countResult.rows[0].count)
     });
   } catch (error) {
-    console.error('Get all articles error:', error);
+    logger.error('Get all articles error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -99,7 +102,7 @@ export const getArticleById = async (req: Request, res: Response) => {
 
     res.json({ article: result.rows[0] });
   } catch (error) {
-    console.error('Get article error:', error);
+    logger.error('Get article error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -134,7 +137,7 @@ export const createArticle = async (req: Request, res: Response) => {
       article: result.rows[0]
     });
   } catch (error) {
-    console.error('Create article error:', error);
+    logger.error('Create article error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -214,7 +217,7 @@ export const updateArticle = async (req: Request, res: Response) => {
       article: result.rows[0]
     });
   } catch (error) {
-    console.error('Update article error:', error);
+    logger.error('Update article error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -235,7 +238,7 @@ export const deleteArticle = async (req: Request, res: Response) => {
 
     res.json({ message: 'Article deleted successfully' });
   } catch (error) {
-    console.error('Delete article error:', error);
+    logger.error('Delete article error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -257,7 +260,7 @@ export const getFeaturedArticles = async (req: Request, res: Response) => {
 
     res.json({ articles: result.rows });
   } catch (error) {
-    console.error('Get featured articles error:', error);
+    logger.error('Get featured articles error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -280,7 +283,7 @@ export const getArticlesByCategory = async (req: Request, res: Response) => {
 
     res.json({ articles: result.rows });
   } catch (error) {
-    console.error('Get articles by category error:', error);
+    logger.error('Get articles by category error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
