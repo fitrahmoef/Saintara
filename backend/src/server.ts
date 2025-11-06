@@ -11,6 +11,9 @@ import { csrfProtection } from './middleware/csrf.middleware'
 import { errorHandler, notFoundHandler } from './middleware/error.middleware'
 import { swaggerSpec } from './config/swagger'
 import logger, { morganStream } from './config/logger'
+import { initSentry } from './config/sentry'
+import * as Sentry from '@sentry/node'
+import { initRedis } from './config/redis'
 
 // Import routes
 import authRoutes from './routes/auth.routes'
@@ -61,8 +64,25 @@ try {
   logger.warn(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
 }
 
+// Initialize Redis
+try {
+  initRedis();
+} catch (error) {
+  logger.warn('⚠️  Redis initialization failed. Caching will be unavailable.');
+  logger.warn(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+}
+
 const app: Application = express()
 const PORT = process.env.PORT || 5000
+
+// Initialize Sentry (must be first)
+initSentry(app)
+
+// Sentry request handler must be the first middleware
+app.use(Sentry.Handlers.requestHandler())
+
+// Sentry tracing middleware
+app.use(Sentry.Handlers.tracingHandler())
 
 // Middleware
 // Enhanced security headers with Helmet
@@ -172,6 +192,9 @@ app.use('/api/partnership', partnershipRoutes)
 
 // 404 Handler - must be after all routes
 app.use(notFoundHandler)
+
+// Sentry error handler must be before custom error handlers
+app.use(Sentry.Handlers.errorHandler())
 
 // Centralized Error Handler - must be last
 app.use(errorHandler)
