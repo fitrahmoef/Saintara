@@ -82,12 +82,24 @@ export const submitTest = async (req: AuthRequest, res: Response): Promise<void>
       return
     }
 
-    // Save answers
-    for (const answer of answers) {
+    // PERFORMANCE: Use batch INSERT instead of N+1 queries
+    // Build values array for batch insert: (test_id, question_id, answer_value)
+    const values: any[] = [];
+    const placeholders: string[] = [];
+
+    answers.forEach((answer, index) => {
+      const offset = index * 3;
+      placeholders.push(`($${offset + 1}, $${offset + 2}, $${offset + 3})`);
+      values.push(id, answer.question_id, answer.answer_value);
+    });
+
+    // Single batch INSERT instead of N queries
+    if (placeholders.length > 0) {
       await pool.query(
-        'INSERT INTO test_answers (test_id, question_id, answer_value) VALUES ($1, $2, $3)',
-        [id, answer.question_id, answer.answer_value]
-      )
+        `INSERT INTO test_answers (test_id, question_id, answer_value) VALUES ${placeholders.join(', ')}`,
+        values
+      );
+      logger.info(`Batch inserted ${answers.length} test answers for test ID: ${id}`);
     }
 
     // Calculate results
