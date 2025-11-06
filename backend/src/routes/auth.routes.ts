@@ -11,7 +11,9 @@ import {
   updateProfile,
   changePassword,
   requestPasswordReset,
-  resetPassword
+  resetPassword,
+  verifyEmail,
+  resendVerification
 } from '../controllers/auth.controller'
 import { authenticateToken } from '../middleware/auth.middleware'
 import { authLimiter, passwordResetLimiter } from '../middleware/rate-limit.middleware'
@@ -88,5 +90,15 @@ router.get('/csrf-token', getCSRFToken)
 
 // Revoke All Sessions (Protected)
 router.post('/revoke-all-sessions', authenticateToken, revokeAllSessions)
+
+// Verify Email
+router.post(
+  '/verify-email',
+  [body('token').notEmpty()],
+  verifyEmail
+)
+
+// Resend Verification Email (Protected)
+router.post('/resend-verification', authenticateToken, resendVerification)
 
 export default router

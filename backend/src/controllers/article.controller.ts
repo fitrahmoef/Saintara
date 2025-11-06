@@ -39,13 +39,30 @@ export const getAllArticles = async (req: Request, res: Response) => {
 
     const result = await pool.query(query, params);
 
-    // Get total count
+    // Get total count - FIXED: Use parameterized query to prevent SQL injection
     let countQuery = `SELECT COUNT(*) FROM articles WHERE 1=1`;
-    if (category) countQuery += ` AND category = '${category}'`;
-    if (is_published !== undefined) countQuery += ` AND is_published = ${is_published === 'true'}`;
-    if (search) countQuery += ` AND (title ILIKE '%${search}%' OR content ILIKE '%${search}%')`;
+    const countParams: any[] = [];
+    let countParamIndex = 0;
 
-    const countResult = await pool.query(countQuery);
+    if (category) {
+      countParamIndex++;
+      countQuery += ` AND category = $${countParamIndex}`;
+      countParams.push(category);
+    }
+
+    if (is_published !== undefined) {
+      countParamIndex++;
+      countQuery += ` AND is_published = $${countParamIndex}`;
+      countParams.push(is_published === 'true');
+    }
+
+    if (search) {
+      countParamIndex++;
+      countQuery += ` AND (title ILIKE $${countParamIndex} OR content ILIKE $${countParamIndex})`;
+      countParams.push(`%${search}%`);
+    }
+
+    const countResult = await pool.query(countQuery, countParams);
 
     res.json({
       articles: result.rows,
