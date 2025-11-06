@@ -3,6 +3,7 @@ import cors from 'cors'
 import helmet from 'helmet'
 import morgan from 'morgan'
 import dotenv from 'dotenv'
+import cookieParser from 'cookie-parser'
 import swaggerUi from 'swagger-ui-express'
 import pool from './config/database'
 import { generalLimiter } from './middleware/rate-limit.middleware'
@@ -110,6 +111,9 @@ app.use(rawBodyMiddleware)
 
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
+
+// Cookie parser for httpOnly cookies
+app.use(cookieParser())
 
 // API Documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {

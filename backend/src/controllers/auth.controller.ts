@@ -5,6 +5,18 @@ import jwt from 'jsonwebtoken'
 import pool from '../config/database'
 import { AuthRequest } from '../middleware/auth.middleware'
 import { emailService } from '../services/email.service'
+import {
+  generateAccessToken,
+  generateRefreshToken,
+  verifyRefreshToken,
+  revokeRefreshToken,
+  revokeAllUserTokens,
+  setAccessTokenCookie,
+  setRefreshTokenCookie,
+  clearAuthCookies,
+} from '../utils/token.utils'
+import { generateCSRFToken } from '../middleware/csrf.middleware'
+import logger from '../config/logger'
 
 export const register = async (req: Request, res: Response): Promise<void> => {
   const errors = validationResult(req)
@@ -46,12 +58,27 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       console.error('Failed to send welcome email:', err)
     )
 
-    // Generate JWT
-    const token = jwt.sign(
-      { id: user.id, email: user.email, role: user.role },
-      process.env.JWT_SECRET as string,
-      { expiresIn: '7d' }
-    )
+    // Generate tokens
+    const accessToken = generateAccessToken({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    })
+
+    const refreshToken = await generateRefreshToken({
+      userId: user.id,
+      ipAddress: req.ip,
+      userAgent: req.get('user-agent'),
+    })
+
+    // Generate CSRF token
+    const csrfToken = generateCSRFToken()
+
+    // Set httpOnly cookies
+    setAccessTokenCookie(res, accessToken)
+    setRefreshTokenCookie(res, refreshToken)
+
+    logger.info(`User registered successfully: ${user.email}`)
 
     res.status(201).json({
       status: 'success',
@@ -62,7 +89,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
           name: user.name,
           role: user.role,
         },
-        token,
+        csrfToken, // Send CSRF token to be stored in memory/localStorage (not sensitive)
       },
     })
   } catch (error) {
@@ -118,18 +145,29 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     const { getUserPermissions } = await import('../utils/permission.utils')
     const permissions = await getUserPermissions(user.id)
 
-    // Generate JWT with institution_id and permissions
-    const token = jwt.sign(
-      {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        institution_id: user.institution_id,
-        permissions
-      },
-      process.env.JWT_SECRET as string,
-      { expiresIn: '7d' }
-    )
+    // Generate tokens
+    const accessToken = generateAccessToken({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      institution_id: user.institution_id,
+      permissions,
+    })
+
+    const refreshToken = await generateRefreshToken({
+      userId: user.id,
+      ipAddress: req.ip,
+      userAgent: req.get('user-agent'),
+    })
+
+    // Generate CSRF token
+    const csrfToken = generateCSRFToken()
+
+    // Set httpOnly cookies
+    setAccessTokenCookie(res, accessToken)
+    setRefreshTokenCookie(res, refreshToken)
+
+    logger.info(`User logged in successfully: ${user.email}`)
 
     res.status(200).json({
       status: 'success',
@@ -141,8 +179,8 @@ export const login = async (req: Request, res: Response): Promise<void> => {
           role: user.role,
           institution_id: user.institution_id,
         },
-        token,
         permissions,
+        csrfToken, // Send CSRF token to be stored in memory/localStorage (not sensitive)
       },
     })
   } catch (error) {
@@ -451,6 +489,156 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
     res.status(500).json({
       status: 'error',
       message: 'Failed to reset password',
+    })
+  }
+}
+
+/**
+ * Logout - Revoke refresh token and clear cookies
+ */
+export const logout = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const refreshToken = req.cookies?.refreshToken
+
+    if (refreshToken) {
+      // Revoke refresh token in database
+      await revokeRefreshToken(refreshToken, 'user_logout')
+    }
+
+    // Clear cookies
+    clearAuthCookies(res)
+
+    logger.info(`User logged out successfully: ${req.user?.email || 'unknown'}`)
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Logged out successfully',
+    })
+  } catch (error) {
+    logger.error('Logout error:', error)
+    // Still clear cookies even if database operation fails
+    clearAuthCookies(res)
+    res.status(200).json({
+      status: 'success',
+      message: 'Logged out successfully',
+    })
+  }
+}
+
+/**
+ * Refresh access token using refresh token
+ */
+export const refreshAccessToken = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const refreshToken = req.cookies?.refreshToken
+
+    if (!refreshToken) {
+      res.status(401).json({
+        status: 'error',
+        message: 'Refresh token required',
+      })
+      return
+    }
+
+    // Verify refresh token and get user ID
+    const userId = await verifyRefreshToken(refreshToken)
+
+    if (!userId) {
+      clearAuthCookies(res)
+      res.status(403).json({
+        status: 'error',
+        message: 'Invalid or expired refresh token',
+      })
+      return
+    }
+
+    // Get user data
+    const userResult = await pool.query(
+      'SELECT id, email, name, role, institution_id FROM users WHERE id = $1',
+      [userId]
+    )
+
+    if (userResult.rows.length === 0) {
+      clearAuthCookies(res)
+      res.status(404).json({
+        status: 'error',
+        message: 'User not found',
+      })
+      return
+    }
+
+    const user = userResult.rows[0]
+
+    // Get user permissions
+    const { getUserPermissions } = await import('../utils/permission.utils')
+    const permissions = await getUserPermissions(user.id)
+
+    // Generate new access token
+    const accessToken = generateAccessToken({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      institution_id: user.institution_id,
+      permissions,
+    })
+
+    // Set new access token cookie
+    setAccessTokenCookie(res, accessToken)
+
+    logger.info(`Access token refreshed for user: ${user.email}`)
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Access token refreshed',
+    })
+  } catch (error) {
+    logger.error('Refresh token error:', error)
+    clearAuthCookies(res)
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to refresh token',
+    })
+  }
+}
+
+/**
+ * Get CSRF token
+ */
+export const getCSRFToken = (req: Request, res: Response): void => {
+  const csrfToken = generateCSRFToken()
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      csrfToken,
+    },
+  })
+}
+
+/**
+ * Revoke all user sessions (security feature)
+ */
+export const revokeAllSessions = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.id
+
+    // Revoke all refresh tokens
+    await revokeAllUserTokens(userId, 'user_requested_revocation')
+
+    // Clear cookies
+    clearAuthCookies(res)
+
+    logger.info(`All sessions revoked for user: ${req.user!.email}`)
+
+    res.status(200).json({
+      status: 'success',
+      message: 'All sessions revoked successfully',
+    })
+  } catch (error) {
+    logger.error('Revoke all sessions error:', error)
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to revoke sessions',
     })
   }
 }

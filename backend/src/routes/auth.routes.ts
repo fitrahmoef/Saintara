@@ -3,6 +3,10 @@ import { body } from 'express-validator'
 import {
   register,
   login,
+  logout,
+  refreshAccessToken,
+  getCSRFToken,
+  revokeAllSessions,
   getProfile,
   updateProfile,
   changePassword,
@@ -72,5 +76,17 @@ router.post(
   ],
   resetPassword
 )
+
+// Logout (Protected)
+router.post('/logout', authenticateToken, logout)
+
+// Refresh Access Token (uses refresh token from cookie)
+router.post('/refresh', refreshAccessToken)
+
+// Get CSRF Token
+router.get('/csrf-token', getCSRFToken)
+
+// Revoke All Sessions (Protected)
+router.post('/revoke-all-sessions', authenticateToken, revokeAllSessions)
 
 export default router
