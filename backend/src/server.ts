@@ -30,6 +30,7 @@ import paymentRoutes from './routes/payment.routes'
 import productRoutes from './routes/product.routes'
 import faqRoutes from './routes/faq.routes'
 import partnershipRoutes from './routes/partnership.routes'
+import twoFactorRoutes from './routes/2fa.routes'
 
 // Import payment service
 import { initializePaymentService } from './services/payment/PaymentService'
@@ -169,6 +170,7 @@ app.use('/api/payments', paymentRoutes)
 app.use('/api/products', productRoutes)
 app.use('/api/faqs', faqRoutes)
 app.use('/api/partnership', partnershipRoutes)
+app.use('/api/2fa', twoFactorRoutes)
 
 // 404 Handler - must be after all routes
 app.use(notFoundHandler)
