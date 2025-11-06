@@ -17,8 +17,14 @@ export const authenticateToken = (
   res: Response,
   next: NextFunction
 ): void => {
-  const authHeader = req.headers['authorization']
-  const token = authHeader && authHeader.split(' ')[1]
+  // Try to get token from cookies first (preferred), then fall back to Authorization header
+  let token = req.cookies?.accessToken
+
+  // Fallback to Authorization header for backward compatibility
+  if (!token) {
+    const authHeader = req.headers['authorization']
+    token = authHeader && authHeader.split(' ')[1]
+  }
 
   if (!token) {
     res.status(401).json({

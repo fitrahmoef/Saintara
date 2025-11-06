@@ -29,11 +29,13 @@ const PROTECTED_METHODS = ['POST', 'PUT', 'DELETE', 'PATCH'];
 
 // Paths that should skip CSRF validation
 const CSRF_SKIP_PATHS = [
-  '/api/webhooks/',      // Webhook endpoints use signature verification
-  '/api/auth/login',     // Login doesn't have a token yet
-  '/api/auth/register',  // Registration doesn't have a token yet
-  '/health',             // Health check endpoint
-  '/api/health',         // Health check endpoint
+  '/api/webhooks/',          // Webhook endpoints use signature verification
+  '/api/auth/login',         // Login doesn't have a token yet
+  '/api/auth/register',      // Registration doesn't have a token yet
+  '/api/auth/refresh',       // Refresh endpoint uses httpOnly cookies
+  '/api/auth/csrf-token',    // Getting CSRF token endpoint
+  '/health',                 // Health check endpoint
+  '/api/health',             // Health check endpoint
 ];
 
 /**

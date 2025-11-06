@@ -1,28 +1,145 @@
-import axios from 'axios'
+import axios, { AxiosError, AxiosRequestConfig, InternalAxiosRequestConfig } from 'axios'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
 
-// Create axios instance
+// Create axios instance with cookie support
 const api = axios.create({
   baseURL: API_URL,
+  withCredentials: true, // Enable cookies for httpOnly tokens
   headers: {
     'Content-Type': 'application/json',
   },
 })
 
-// Add token to requests
+// CSRF Token management
+let csrfToken: string | null = null
+
+export const setCsrfToken = (token: string) => {
+  csrfToken = token
+}
+
+export const getCsrfToken = () => csrfToken
+
+// Fetch CSRF token from server
+export const fetchCsrfToken = async (): Promise<string> => {
+  try {
+    const response = await axios.get(`${API_URL}/auth/csrf-token`, {
+      withCredentials: true,
+    })
+    const token = response.data.data.csrfToken
+    setCsrfToken(token)
+    return token
+  } catch (error) {
+    console.error('Failed to fetch CSRF token:', error)
+    throw error
+  }
+}
+
+// Track if we're currently refreshing to avoid multiple refresh calls
+let isRefreshing = false
+let failedQueue: Array<{
+  resolve: (value?: unknown) => void
+  reject: (reason?: unknown) => void
+}> = []
+
+const processQueue = (error: Error | null = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error)
+    } else {
+      prom.resolve()
+    }
+  })
+  failedQueue = []
+}
+
+// Request Interceptor
 api.interceptors.request.use(
-  (config) => {
+  (config: InternalAxiosRequestConfig) => {
+    // Add CSRF token to state-changing requests
+    if (
+      csrfToken &&
+      config.method &&
+      ['post', 'put', 'delete', 'patch'].includes(config.method.toLowerCase())
+    ) {
+      config.headers['X-CSRF-Token'] = csrfToken
+    }
+
+    // Fallback: Check for token in localStorage for backward compatibility
     const token = localStorage.getItem('token')
-    if (token) {
+    if (token && !config.headers.Authorization) {
       config.headers.Authorization = `Bearer ${token}`
     }
+
     return config
   },
   (error) => {
     return Promise.reject(error)
   }
 )
+
+// Response Interceptor
+api.interceptors.response.use(
+  (response) => response,
+  async (error: AxiosError) => {
+    const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean }
+
+    // Handle 401 Unauthorized - Token expired
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      if (isRefreshing) {
+        // Queue requests while refreshing
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject })
+        })
+          .then(() => api(originalRequest))
+          .catch((err) => Promise.reject(err))
+      }
+
+      originalRequest._retry = true
+      isRefreshing = true
+
+      try {
+        // Try to refresh the access token
+        await axios.post(`${API_URL}/auth/refresh`, {}, { withCredentials: true })
+        processQueue()
+        isRefreshing = false
+        return api(originalRequest)
+      } catch (refreshError) {
+        processQueue(refreshError as Error)
+        isRefreshing = false
+
+        // Clear localStorage tokens
+        localStorage.removeItem('token')
+        localStorage.removeItem('user')
+
+        // Redirect to login
+        if (typeof window !== 'undefined') {
+          window.location.href = '/login'
+        }
+        return Promise.reject(refreshError)
+      }
+    }
+
+    return Promise.reject(error)
+  }
+)
+
+/**
+ * Auto-refresh token before expiry
+ * Access token expires in 15 minutes, refresh at 14 minutes
+ */
+export const startTokenRefreshTimer = () => {
+  const REFRESH_INTERVAL = 14 * 60 * 1000 // 14 minutes
+
+  setInterval(async () => {
+    try {
+      await api.post('/auth/refresh')
+      console.log('[Token Refresh] Access token refreshed successfully')
+    } catch (error) {
+      console.error('[Token Refresh] Failed to refresh token:', error)
+    }
+  }, REFRESH_INTERVAL)
+}
 
 // Auth API
 export const authAPI = {
