@@ -8,11 +8,8 @@
 import pool from '../config/database'
 import logger from '../config/logger'
 import dotenv from 'dotenv'
-import logger from '../config/logger'
 import fs from 'fs'
-import logger from '../config/logger'
 import path from 'path'
-import logger from '../config/logger'
 
 dotenv.config()
 

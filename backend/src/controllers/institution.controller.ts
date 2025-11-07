@@ -4,15 +4,10 @@
  */
 
 import { Response } from 'express';
-import logger from '../config/logger'
 import { AuthRequest } from '../middleware/auth.middleware';
-import logger from '../config/logger'
 import pool from '../config/database';
-import logger from '../config/logger'
 import { validationResult } from 'express-validator';
-import logger from '../config/logger'
 import {
-import logger from '../config/logger'
   Institution,
   CreateInstitutionDto,
   UpdateInstitutionDto,
@@ -20,7 +15,7 @@ import logger from '../config/logger'
   AdminHierarchy,
 } from '../types/institution.types';
 import { getUserPermissions } from '../utils/permission.utils';
-import logger from '../config/logger'
+import logger from '../config/logger';
 
 /**
  * Create a new institution (Superadmin only)

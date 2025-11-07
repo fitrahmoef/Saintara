@@ -1,15 +1,13 @@
 import { Pool } from 'pg';
-import logger from '../config/logger'
 import { emailService } from './email.service';
-import logger from '../config/logger'
 import {
-import logger from '../config/logger'
   QueueEmailOptions,
   EmailQueueItem,
   EmailQueueStatus,
   BulkEmailOptions,
   EmailTemplate
 } from '../types/email.types';
+import logger from '../config/logger';
 
 class EmailQueueService {
   private pool: Pool;

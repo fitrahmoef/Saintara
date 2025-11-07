@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
-import logger from '../config/logger'
 import pool from '../config/database';
-import logger from '../config/logger'
+import logger from '../config/logger';
 
 // Get all events
 export const getAllEvents = async (req: Request, res: Response) => {

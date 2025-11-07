@@ -1,9 +1,7 @@
 import { Pool } from 'pg'
-import logger from '../config/logger'
 import { neon, neonConfig } from '@neondatabase/serverless'
-import logger from '../config/logger'
 import dotenv from 'dotenv'
-import logger from '../config/logger'
+import logger from './logger'
 
 dotenv.config()
 
