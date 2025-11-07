@@ -416,7 +416,7 @@ export const updateCustomer = async (
     Object.entries(updateData).forEach(([key, value]) => {
       if (allowedFields.includes(key) && value !== undefined) {
         updateFields.push(`${key} = $${paramIndex}`);
-        updateValues.push(value);
+        updateValues.push(value as any);
         paramIndex++;
       }
     });

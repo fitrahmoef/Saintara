@@ -64,7 +64,7 @@ export async function invalidateCache(pattern: string): Promise<number> {
 /**
  * Clear all cache
  */
-export async function clearAllCache(): Promise<boolean> {
+export async function clearAllCache(): Promise<number> {
   const cache = new RedisCache();
   return await cache.delPattern('cache:*');
 }

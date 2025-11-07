@@ -57,37 +57,34 @@ export class XenditProvider implements IPaymentProvider {
 
       // Create invoice
       const invoice = await Invoice.createInvoice({
-        externalID: request.metadata.transaction_code,
-        amount: request.amount,
-        payerEmail: request.metadata.user_email,
-        description: request.description || `Saintara ${request.metadata.package_type} Package`,
-        customer: {
-          given_names: request.metadata.user_name,
-          email: request.metadata.user_email,
+        data: {
+          externalId: request.metadata.transaction_code,
+          amount: request.amount,
+          payerEmail: request.metadata.user_email,
+          description: request.description || `Saintara ${request.metadata.package_type} Package`,
+          customer: {
+            givenNames: request.metadata.user_name,
+            email: request.metadata.user_email,
+          } as any,
+          customerNotificationPreference: {
+            invoiceCreated: ['email'],
+            invoiceReminder: ['email'],
+            invoicePaid: ['email'],
+          } as any,
+          successRedirectUrl: request.success_url || `${process.env.FRONTEND_URL}/payment/success`,
+          failureRedirectUrl: request.cancel_url || `${process.env.FRONTEND_URL}/payment/cancel`,
+          currency: request.currency,
+          invoiceDuration: '86400', // 24 hours (as string)
+          items: [
+            {
+              name: `Saintara ${request.metadata.package_type} Package`,
+              quantity: 1,
+              price: request.amount,
+            },
+          ] as any,
+          fees: [] as any,
         },
-        customerNotificationPreference: {
-          invoice_created: ['email'],
-          invoice_reminder: ['email'],
-          invoice_paid: ['email'],
-        },
-        successRedirectURL: request.success_url || `${process.env.FRONTEND_URL}/payment/success`,
-        failureRedirectURL: request.cancel_url || `${process.env.FRONTEND_URL}/payment/cancel`,
-        currency: request.currency,
-        invoiceDuration: 86400, // 24 hours
-        items: [
-          {
-            name: `Saintara ${request.metadata.package_type} Package`,
-            quantity: 1,
-            price: request.amount,
-          },
-        ],
-        fees: [],
-        metadata: {
-          user_id: request.metadata.user_id.toString(),
-          package_type: request.metadata.package_type,
-          transaction_code: request.metadata.transaction_code,
-        },
-      });
+      } as any);
 
       logger.info(`Xendit invoice created: ${invoice.id}`);
 
@@ -97,11 +94,11 @@ export class XenditProvider implements IPaymentProvider {
         status: 'pending',
         amount: request.amount,
         currency: request.currency,
-        payment_url: invoice.invoice_url,
-        expires_at: new Date(invoice.expiry_date as string),
+        payment_url: invoice.invoiceUrl,
+        expires_at: invoice.expiryDate ? new Date(invoice.expiryDate as any) : new Date(),
         metadata: {
-          external_id: invoice.external_id,
-          invoice_url: invoice.invoice_url,
+          external_id: invoice.externalId,
+          invoice_url: invoice.invoiceUrl,
         },
       };
     } catch (error) {
@@ -114,7 +111,7 @@ export class XenditProvider implements IPaymentProvider {
     try {
       const { Invoice } = this.xendit;
       const invoice = await Invoice.getInvoiceById({
-        invoiceID: paymentId,
+        invoiceId: paymentId,
       });
 
       let status: PaymentStatus = 'pending';
@@ -132,11 +129,11 @@ export class XenditProvider implements IPaymentProvider {
         status,
         amount: invoice.amount as number,
         currency: invoice.currency as string,
-        payment_url: invoice.invoice_url,
-        expires_at: new Date(invoice.expiry_date as string),
+        payment_url: invoice.invoiceUrl,
+        expires_at: invoice.expiryDate ? new Date(invoice.expiryDate as any) : new Date(),
         metadata: {
-          external_id: invoice.external_id,
-          payment_method: invoice.payment_method,
+          external_id: invoice.externalId,
+          payment_method: invoice.paymentMethod,
         },
       };
     } catch (error) {

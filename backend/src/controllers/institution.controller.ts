@@ -426,7 +426,7 @@ export const getInstitutionAnalytics = async (
     const testCompletionRate =
       stats.total_tests > 0
         ? ((stats.total_completed_tests / stats.total_tests) * 100).toFixed(1)
-        : 0;
+        : '0.0';
 
     // Get most common personality type
     const personalityQuery = `

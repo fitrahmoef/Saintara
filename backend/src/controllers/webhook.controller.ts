@@ -26,8 +26,8 @@ export const handleStripeWebhook = async (req: Request, res: Response) => {
     const paymentService = getPaymentService();
     const webhookData = await paymentService.verifyWebhook(rawBody, signature, 'stripe');
 
-    // Extract webhook ID for idempotency (Stripe sends 'id' field)
-    const webhookId = webhookData.id || webhookData.event_id;
+    // Extract webhook ID for idempotency (use payment_id or external_id)
+    const webhookId = webhookData.payment_id || webhookData.external_id;
 
     if (!webhookId) {
       logger.error('Stripe webhook missing ID field');
@@ -73,8 +73,8 @@ export const handleXenditWebhook = async (req: Request, res: Response) => {
     const paymentService = getPaymentService();
     const webhookData = await paymentService.verifyWebhook(rawBody, signature, 'xendit');
 
-    // Extract webhook ID for idempotency (Xendit sends 'id' field)
-    const webhookId = webhookData.id || webhookData.payment_id;
+    // Extract webhook ID for idempotency (use payment_id)
+    const webhookId = webhookData.payment_id || webhookData.external_id;
 
     if (!webhookId) {
       logger.error('Xendit webhook missing ID field');

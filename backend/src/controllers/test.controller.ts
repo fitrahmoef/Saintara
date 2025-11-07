@@ -85,7 +85,7 @@ export const submitTest = async (req: AuthRequest, res: Response): Promise<void>
     const values: any[] = [];
     const placeholders: string[] = [];
 
-    answers.forEach((answer, index) => {
+    answers.forEach((answer: any, index: number) => {
       const offset = index * 3;
       placeholders.push(`($${offset + 1}, $${offset + 2}, $${offset + 3})`);
       values.push(id, answer.question_id, answer.answer_value);
