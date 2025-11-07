@@ -4,15 +4,11 @@
  */
 
 import { Response } from 'express';
-import logger from '../config/logger'
 import { AuthRequest } from '../middleware/auth.middleware';
-import logger from '../config/logger'
 import pool from '../config/database';
-import logger from '../config/logger'
 import fs from 'fs/promises';
-import logger from '../config/logger'
 import path from 'path';
-import logger from '../config/logger'
+import logger from '../config/logger';
 
 /**
  * Upload user avatar

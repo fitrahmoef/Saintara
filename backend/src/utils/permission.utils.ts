@@ -4,9 +4,8 @@
  */
 
 import pool from '../config/database';
-import logger from '../config/logger'
 import { UserRole, PermissionScope, AuthContext } from '../types/institution.types';
-import logger from '../config/logger'
+import logger from '../config/logger';
 
 /**
  * Check if a user has a specific permission

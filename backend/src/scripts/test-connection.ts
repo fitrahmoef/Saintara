@@ -5,10 +5,9 @@
  * Run with: npm run db:test
  */
 
-import pool, { testConnection } from '../config/database'
-import logger from '../config/logger'
-import dotenv from 'dotenv'
-import logger from '../config/logger'
+import pool, { testConnection } from '../config/database';
+import dotenv from 'dotenv';
+import logger from '../config/logger';
 
 dotenv.config()
 

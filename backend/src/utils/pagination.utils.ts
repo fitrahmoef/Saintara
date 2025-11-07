@@ -6,6 +6,8 @@
  * making deep pagination as fast as shallow pagination.
  */
 
+import logger from '../config/logger';
+
 export interface CursorPaginationParams {
   limit?: number;
   cursor?: string; // Base64 encoded cursor

@@ -1,12 +1,11 @@
 import nodemailer, { Transporter } from 'nodemailer';
-import logger from '../config/logger'
 import {
-import logger from '../config/logger'
   EmailConfig,
   SendEmailOptions,
   EmailSendResult,
   TemplateRenderData
 } from '../types/email.types';
+import logger from '../config/logger';
 
 class EmailService {
   private transporter: Transporter | null = null;
