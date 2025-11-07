@@ -1,8 +1,9 @@
 import { Request, Response } from 'express';
 import { getPaymentService } from '../services/payment/PaymentService';
-import { pool } from '../config/database';
-import { logger } from '../utils/logger';
+import pool from '../config/database';
+import logger from '../config/logger';
 import { PaymentProvider } from '../types/payment.types';
+import { emailService } from '../services/email.service';
 
 /**
  * Handle Stripe webhook events
@@ -313,8 +314,26 @@ async function processWebhookData(webhookData: any, provider: string, webhookId:
         logger.info(`Using existing voucher: ${voucherCode} for transaction ${transaction.transaction_code}`);
       }
 
-      // TODO: Send payment confirmation email
-      // await sendPaymentConfirmationEmail(transaction, voucherCode);
+      // Send payment confirmation email
+      try {
+        const userResult = await client.query(
+          'SELECT email, name FROM users WHERE id = $1',
+          [transaction.user_id]
+        );
+        if (userResult.rows.length > 0) {
+          const user = userResult.rows[0];
+          await emailService.sendPaymentConfirmationEmail(
+            user.email,
+            user.name,
+            transaction,
+            voucherCode
+          );
+          logger.info(`Payment confirmation email sent to ${user.email}`);
+        }
+      } catch (emailError) {
+        logger.error('Failed to send payment confirmation email:', emailError);
+        // Don't fail the webhook if email fails
+      }
 
     } else if (webhookData.status === 'failed') {
       await client.query(
@@ -340,8 +359,25 @@ async function processWebhookData(webhookData: any, provider: string, webhookId:
 
       logger.info(`Transaction ${transaction.transaction_code} marked as failed`);
 
-      // TODO: Send payment failure email
-      // await sendPaymentFailureEmail(transaction);
+      // Send payment failure email
+      try {
+        const userResult = await client.query(
+          'SELECT email, name FROM users WHERE id = $1',
+          [transaction.user_id]
+        );
+        if (userResult.rows.length > 0) {
+          const user = userResult.rows[0];
+          await emailService.sendPaymentFailureEmail(
+            user.email,
+            user.name,
+            transaction
+          );
+          logger.info(`Payment failure email sent to ${user.email}`);
+        }
+      } catch (emailError) {
+        logger.error('Failed to send payment failure email:', emailError);
+        // Don't fail the webhook if email fails
+      }
 
     } else if (webhookData.status === 'refunded') {
       await client.query(
@@ -376,8 +412,25 @@ async function processWebhookData(webhookData: any, provider: string, webhookId:
 
       logger.info(`Transaction ${transaction.transaction_code} refunded and vouchers invalidated`);
 
-      // TODO: Send refund confirmation email
-      // await sendRefundConfirmationEmail(transaction);
+      // Send refund confirmation email
+      try {
+        const userResult = await client.query(
+          'SELECT email, name FROM users WHERE id = $1',
+          [transaction.user_id]
+        );
+        if (userResult.rows.length > 0) {
+          const user = userResult.rows[0];
+          await emailService.sendRefundConfirmationEmail(
+            user.email,
+            user.name,
+            transaction
+          );
+          logger.info(`Refund confirmation email sent to ${user.email}`);
+        }
+      } catch (emailError) {
+        logger.error('Failed to send refund confirmation email:', emailError);
+        // Don't fail the webhook if email fails
+      }
     }
 
     // Update webhook event status to completed

@@ -4,28 +4,20 @@
  */
 
 import { Response } from 'express';
-import logger from '../config/logger'
 import { AuthRequest } from '../middleware/auth.middleware';
-import logger from '../config/logger'
 import pool from '../config/database';
-import logger from '../config/logger'
 import { validationResult } from 'express-validator';
-import logger from '../config/logger'
 import bcrypt from 'bcryptjs';
-import logger from '../config/logger'
 import ExcelJS from 'exceljs';
-import logger from '../config/logger'
 import fs from 'fs';
-import logger from '../config/logger'
 import {
-import logger from '../config/logger'
   BulkImportCustomerDto,
   BulkImportResult,
   BulkImportError,
   CustomerListQuery,
 } from '../types/institution.types';
 import { emailService } from '../services/email.service';
-import logger from '../config/logger'
+import logger from '../config/logger';
 
 /**
  * Get customers for institution admin

@@ -1,12 +1,11 @@
 import nodemailer, { Transporter } from 'nodemailer';
-import logger from '../config/logger'
 import {
-import logger from '../config/logger'
   EmailConfig,
   SendEmailOptions,
   EmailSendResult,
   TemplateRenderData
 } from '../types/email.types';
+import logger from '../config/logger';
 
 class EmailService {
   private transporter: Transporter | null = null;
@@ -335,6 +334,290 @@ class EmailService {
       to: email,
       toName: name,
       subject: 'Welcome to Saintara - Discover Your True Potential',
+      html,
+    });
+  }
+
+  /**
+   * Send payment confirmation email
+   */
+  async sendPaymentConfirmationEmail(
+    email: string,
+    name: string,
+    transaction: any,
+    voucherCode?: string
+  ): Promise<EmailSendResult> {
+    const dashboardUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/dashboard`;
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background-color: #4CAF50; padding: 20px; text-align: center; }
+          .header h1 { color: #fff; margin: 0; }
+          .content { background-color: #f9f9f9; padding: 30px; }
+          .success-icon { font-size: 48px; text-align: center; color: #4CAF50; }
+          .details { background: #fff; padding: 20px; border-radius: 5px; margin: 20px 0; }
+          .detail-row { display: flex; justify-content: space-between; margin: 10px 0; }
+          .button {
+            display: inline-block;
+            padding: 12px 30px;
+            background-color: #4CAF50;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+          }
+          .voucher-code {
+            background: #FEC53D;
+            padding: 15px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            border-radius: 5px;
+            margin: 20px 0;
+          }
+          .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>Payment Successful!</h1>
+          </div>
+          <div class="content">
+            <div class="success-icon">✓</div>
+            <h2>Hello ${name}!</h2>
+            <p>Thank you for your payment. Your transaction has been completed successfully.</p>
+
+            <div class="details">
+              <h3>Transaction Details</h3>
+              <div class="detail-row">
+                <span><strong>Transaction Code:</strong></span>
+                <span>${transaction.transaction_code}</span>
+              </div>
+              <div class="detail-row">
+                <span><strong>Package:</strong></span>
+                <span>${transaction.package_type}</span>
+              </div>
+              <div class="detail-row">
+                <span><strong>Amount:</strong></span>
+                <span>Rp ${transaction.amount.toLocaleString('id-ID')}</span>
+              </div>
+              <div class="detail-row">
+                <span><strong>Payment Method:</strong></span>
+                <span>${transaction.payment_method}</span>
+              </div>
+            </div>
+
+            ${voucherCode ? `
+              <div class="voucher-code">
+                <p style="margin: 0;">Your Voucher Code</p>
+                <p style="margin: 5px 0; font-size: 28px;">${voucherCode}</p>
+              </div>
+              <p style="text-align: center;">Use this code to access your test.</p>
+            ` : ''}
+
+            <p style="text-align: center; margin: 30px 0;">
+              <a href="${dashboardUrl}" class="button">Go to Dashboard</a>
+            </p>
+
+            <p>If you have any questions, please don't hesitate to contact us.</p>
+            <p>Best regards,<br>The Saintara Team</p>
+          </div>
+          <div class="footer">
+            <p>© ${new Date().getFullYear()} Saintara. All rights reserved.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    return this.sendEmail({
+      to: email,
+      toName: name,
+      subject: 'Payment Successful - Saintara',
+      html,
+    });
+  }
+
+  /**
+   * Send payment failure email
+   */
+  async sendPaymentFailureEmail(
+    email: string,
+    name: string,
+    transaction: any
+  ): Promise<EmailSendResult> {
+    const retryUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/products`;
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background-color: #f44336; padding: 20px; text-align: center; }
+          .header h1 { color: #fff; margin: 0; }
+          .content { background-color: #f9f9f9; padding: 30px; }
+          .error-icon { font-size: 48px; text-align: center; color: #f44336; }
+          .details { background: #fff; padding: 20px; border-radius: 5px; margin: 20px 0; }
+          .detail-row { display: flex; justify-content: space-between; margin: 10px 0; }
+          .button {
+            display: inline-block;
+            padding: 12px 30px;
+            background-color: #FEC53D;
+            color: #000;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+          }
+          .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>Payment Failed</h1>
+          </div>
+          <div class="content">
+            <div class="error-icon">✗</div>
+            <h2>Hello ${name}</h2>
+            <p>Unfortunately, your payment could not be processed.</p>
+
+            <div class="details">
+              <h3>Transaction Details</h3>
+              <div class="detail-row">
+                <span><strong>Transaction Code:</strong></span>
+                <span>${transaction.transaction_code}</span>
+              </div>
+              <div class="detail-row">
+                <span><strong>Package:</strong></span>
+                <span>${transaction.package_type}</span>
+              </div>
+              <div class="detail-row">
+                <span><strong>Amount:</strong></span>
+                <span>Rp ${transaction.amount.toLocaleString('id-ID')}</span>
+              </div>
+              ${transaction.payment_failure_reason ? `
+              <div class="detail-row">
+                <span><strong>Reason:</strong></span>
+                <span>${transaction.payment_failure_reason}</span>
+              </div>
+              ` : ''}
+            </div>
+
+            <p><strong>What you can do:</strong></p>
+            <ul>
+              <li>Check your payment method details</li>
+              <li>Ensure you have sufficient funds</li>
+              <li>Try a different payment method</li>
+              <li>Contact your bank if the issue persists</li>
+            </ul>
+
+            <p style="text-align: center; margin: 30px 0;">
+              <a href="${retryUrl}" class="button">Try Again</a>
+            </p>
+
+            <p>If you need assistance, please contact our support team.</p>
+            <p>Best regards,<br>The Saintara Team</p>
+          </div>
+          <div class="footer">
+            <p>© ${new Date().getFullYear()} Saintara. All rights reserved.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    return this.sendEmail({
+      to: email,
+      toName: name,
+      subject: 'Payment Failed - Saintara',
+      html,
+    });
+  }
+
+  /**
+   * Send refund confirmation email
+   */
+  async sendRefundConfirmationEmail(
+    email: string,
+    name: string,
+    transaction: any
+  ): Promise<EmailSendResult> {
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background-color: #2196F3; padding: 20px; text-align: center; }
+          .header h1 { color: #fff; margin: 0; }
+          .content { background-color: #f9f9f9; padding: 30px; }
+          .info-icon { font-size: 48px; text-align: center; color: #2196F3; }
+          .details { background: #fff; padding: 20px; border-radius: 5px; margin: 20px 0; }
+          .detail-row { display: flex; justify-content: space-between; margin: 10px 0; }
+          .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>Refund Processed</h1>
+          </div>
+          <div class="content">
+            <div class="info-icon">ℹ</div>
+            <h2>Hello ${name}</h2>
+            <p>Your refund has been processed successfully.</p>
+
+            <div class="details">
+              <h3>Refund Details</h3>
+              <div class="detail-row">
+                <span><strong>Transaction Code:</strong></span>
+                <span>${transaction.transaction_code}</span>
+              </div>
+              <div class="detail-row">
+                <span><strong>Package:</strong></span>
+                <span>${transaction.package_type}</span>
+              </div>
+              <div class="detail-row">
+                <span><strong>Refund Amount:</strong></span>
+                <span>Rp ${transaction.amount.toLocaleString('id-ID')}</span>
+              </div>
+              <div class="detail-row">
+                <span><strong>Payment Method:</strong></span>
+                <span>${transaction.payment_method}</span>
+              </div>
+            </div>
+
+            <p><strong>Please note:</strong></p>
+            <ul>
+              <li>The refund will be credited to your original payment method</li>
+              <li>It may take 5-10 business days for the refund to appear in your account</li>
+              <li>Any vouchers associated with this transaction have been invalidated</li>
+            </ul>
+
+            <p>If you have any questions about this refund, please contact our support team.</p>
+            <p>Best regards,<br>The Saintara Team</p>
+          </div>
+          <div class="footer">
+            <p>© ${new Date().getFullYear()} Saintara. All rights reserved.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    return this.sendEmail({
+      to: email,
+      toName: name,
+      subject: 'Refund Processed - Saintara',
       html,
     });
   }

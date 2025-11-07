@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { getPaymentService } from '../services/payment/PaymentService';
-import { pool } from '../config/database';
-import { logger } from '../utils/logger';
+import pool from '../config/database';
+import logger from '../utils/logger';
 import {
   CreatePaymentRequest,
   PaymentProvider,

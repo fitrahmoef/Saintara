@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
-import logger from '../config/logger'
 import pool from '../config/database';
-import logger from '../config/logger'
+import logger from '../config/logger';
 
 // Create a new transaction
 export const createTransaction = async (req: Request, res: Response) => {

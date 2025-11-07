@@ -1,9 +1,7 @@
 import * as Sentry from '@sentry/node';
-import logger from '../config/logger'
-import { ProfilingIntegration } from '@sentry/profiling-node';
-import logger from '../config/logger'
+import { nodeProfilingIntegration } from '@sentry/profiling-node';
 import { Express } from 'express';
-import logger from '../config/logger'
+import logger from './logger';
 
 /**
  * Initialize Sentry for error tracking and performance monitoring
@@ -30,13 +28,13 @@ export function initSentry(app: Express) {
 
     integrations: [
       // Enable HTTP calls tracing
-      new Sentry.Integrations.Http({ tracing: true }),
+      Sentry.httpIntegration(),
 
       // Enable Express.js middleware tracing
-      new Sentry.Integrations.Express({ app }),
+      Sentry.expressIntegration(),
 
       // Enable Profiling
-      new ProfilingIntegration(),
+      nodeProfilingIntegration(),
     ],
 
     // Ignore certain errors
@@ -52,7 +50,7 @@ export function initSentry(app: Express) {
     // Filter sensitive data
     beforeSend(event, hint) {
       // Don't send events for health checks
-      if (event.request?.url?.includes('/health')) {
+      if (event.request?.url && typeof event.request.url === 'string' && event.request.url.includes('/health')) {
         return null;
       }
 
@@ -63,13 +61,14 @@ export function initSentry(app: Express) {
       }
 
       // Remove sensitive query params
-      if (event.request?.query_string) {
+      if (event.request?.query_string && typeof event.request.query_string === 'string') {
         const sensitiveParams = ['token', 'password', 'secret', 'api_key'];
-        sensitiveParams.forEach(param => {
-          if (event.request?.query_string?.includes(param)) {
+        for (const param of sensitiveParams) {
+          if (event.request.query_string.includes(param)) {
             event.request.query_string = '[FILTERED]';
+            break;
           }
-        });
+        }
       }
 
       return event;

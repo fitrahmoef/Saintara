@@ -4,6 +4,8 @@
  * SECURITY: Prevents same queries from being executed 1000s of times/day
  */
 
+import logger from '../config/logger';
+
 interface CacheEntry<T> {
   data: T;
   expiresAt: number;

@@ -8,7 +8,6 @@
 import pool, { testConnection } from '../config/database'
 import logger from '../config/logger'
 import dotenv from 'dotenv'
-import logger from '../config/logger'
 
 dotenv.config()
 

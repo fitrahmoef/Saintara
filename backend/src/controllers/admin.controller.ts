@@ -1,7 +1,5 @@
 import { Response } from 'express'
-import logger from '../config/logger'
 import pool from '../config/database'
-import logger from '../config/logger'
 import { AuthRequest } from '../middleware/auth.middleware'
 import logger from '../config/logger'
 
