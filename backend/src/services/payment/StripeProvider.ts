@@ -17,7 +17,7 @@ export class StripeProvider implements IPaymentProvider {
 
   constructor(secretKey: string, webhookSecret: string) {
     this.stripe = new Stripe(secretKey, {
-      apiVersion: '2024-12-18.acacia',
+      apiVersion: '2023-10-16',
     });
     this.webhookSecret = webhookSecret;
   }

@@ -80,14 +80,14 @@ export const createPaymentIntent = async (req: Request, res: Response) => {
     }
 
     const paymentRequest: CreatePaymentRequest = {
-      amount: parseFloat(amount),
+      amount: amount,
       currency: provider === 'xendit' ? 'IDR' : 'USD',
       payment_method_type,
       description: `Saintara ${package_type} package subscription`,
       metadata: {
-        user_id: userId,
-        user_email: userEmail,
-        user_name: userName,
+        user_id: Number(userId),
+        user_email: String(userEmail),
+        user_name: String(userName),
         package_type,
         transaction_code
       },

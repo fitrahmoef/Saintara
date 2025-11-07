@@ -76,13 +76,8 @@ const app: Application = express()
 const PORT = process.env.PORT || 5000
 
 // Initialize Sentry (must be first)
-initSentry(app)
-
-// Sentry request handler must be the first middleware
-app.use(Sentry.Handlers.requestHandler())
-
-// Sentry tracing middleware
-app.use(Sentry.Handlers.tracingHandler())
+// In Sentry v10+, the middleware is automatically set up via integrations
+initSentry(app as any)
 
 // Middleware
 // Enhanced security headers with Helmet
@@ -193,10 +188,8 @@ app.use('/api/partnership', partnershipRoutes)
 // 404 Handler - must be after all routes
 app.use(notFoundHandler)
 
-// Sentry error handler must be before custom error handlers
-app.use(Sentry.Handlers.errorHandler())
-
 // Centralized Error Handler - must be last
+// Note: Sentry error handling is automatically configured via expressIntegration()
 app.use(errorHandler)
 
 // Start server
