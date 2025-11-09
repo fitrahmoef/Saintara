@@ -1,8 +1,10 @@
 "use client"
 
+import Image from "next/image"
 import { useState } from "react"
 import Link from "next/link"
 import { useAuth } from "@/contexts/AuthContext" // Pastikan path ini benar
+import logo_nav from "@/assets/logo/4.png"
 import { HiMenu, HiX, HiUser, HiLogout } from "react-icons/hi"
 
 export default function Navbar() {
@@ -17,9 +19,17 @@ export default function Navbar() {
       <div className="max-w-screen-xl flex flex-wrap items-center px-10 justify-between mx-auto p-4 bg-white/80 backdrop-blur-sm rounded-full shadow-lg border border-gray-200">
         {/* === PERUBAHAN: Logo Uppercase & Bold === */}
         <Link href="/" className="flex items-center space-x-3">
+          {/* Tambahkan komponen Image di sini */}
+          <Image
+            src={logo_nav}
+            alt="Logo Saintara"
+            width={32} // Sesuaikan ukurannya (misal 32px)
+            height={32} // Sesuaikan ukurannya (misal 32px)
+            className="h-8 w-8" // Tailwind (h-8 = 2rem = 32px)
+            priority // Bagus untuk logo agar dimuat cepat
+          />
           <span className="self-center text-2xl uppercase font-bold whitespace-nowrap text-saintara-black font-poppins">SAINTARA</span>
         </Link>
-
         {/* Tombol Aksi (Kanan) & Toggle Menu Mobile */}
         <div className="flex items-center md:order-2 space-x-3">
           {user ? (

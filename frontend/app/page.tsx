@@ -5,17 +5,18 @@ import Navbar from "@/components/Navbar"
 import Footer from "@/components/Footer"
 import Image from "next/image"
 import LandingPageImage from "@/assets/landingPage.png"
-import PemikirIntrovertImage from "@/assets/9karakter/PemikirIntrovert.png"; 
-import PemikirExtrovertImage from "@/assets/9karakter/PemikirExtrovert.png";
-import PengamatIntrovertImage from "@/assets/9karakter/PengamatIntrovert.png";
-import PengamatExtrovertImage from "@/assets/9karakter/PengamatExtrovert.png";
-import PerasaIntrovertImage from "@/assets/9karakter/PerasaIntrovert.png";
-import PerasaExtrovertImage from "@/assets/9karakter/PerasaExtrovert.png";
-import PemimpiIntrovertImage from "@/assets/9karakter/PemimpiIntrovert.png";
-import PemimpiExtrovertImage from "@/assets/9karakter/PemimpiExtrovert.png";
-import PenggerakImage from "@/assets/9karakter/Penggerak.png";
-import PriaTestimoniImage from "@/assets/fotopria.png"; 
-import WanitaTestimoniImage from "@/assets/wanita.png";
+import PemikirIntrovertImage from "@/assets/9karakter/PemikirIntrovert.png"
+import PemikirExtrovertImage from "@/assets/9karakter/PemikirExtrovert.png"
+import PengamatIntrovertImage from "@/assets/9karakter/PengamatIntrovert.png"
+import PengamatExtrovertImage from "@/assets/9karakter/PengamatExtrovert.png"
+import PerasaIntrovertImage from "@/assets/9karakter/PerasaIntrovert.png"
+import PerasaExtrovertImage from "@/assets/9karakter/PerasaExtrovert.png"
+import PemimpiIntrovertImage from "@/assets/9karakter/PemimpiIntrovert.png"
+import PemimpiExtrovertImage from "@/assets/9karakter/PemimpiExtrovert.png"
+import arrow from "@/assets/arrow.png"
+import PenggerakImage from "@/assets/9karakter/Penggerak.png"
+import PriaTestimoniImage from "@/assets/testimoni/fotopria.png"
+import WanitaTestimoniImage from "@/assets/testimoni/fotowanita.png"
 import Link from "next/link"
 import AOS from "aos"
 import "aos/dist/aos.css"
@@ -30,50 +31,50 @@ export default function Home() {
   }, [])
 
   const characterTypes = [
-    { 
-      name: "Pemikir Introvert", 
-      desc: "Analis yang mendalam, logis, dan lebih suka bekerja sendiri.", 
-      imageSrc: PemikirIntrovertImage 
+    {
+      name: "Pemikir Introvert",
+      desc: "Analis yang mendalam, logis, dan lebih suka bekerja sendiri.",
+      imageSrc: PemikirIntrovertImage,
     },
-    { 
-      name: "Pemikir Extrovert", 
-      desc: "Pemimpin tegas, strategis, dan suka mengatur sistem.", 
-      imageSrc: PemikirExtrovertImage 
+    {
+      name: "Pemikir Extrovert",
+      desc: "Pemimpin tegas, strategis, dan suka mengatur sistem.",
+      imageSrc: PemikirExtrovertImage,
     },
-    { 
-      name: "Pengamat Introvert", 
-      desc: "Praktis, teliti, dan mengandalkan fakta nyata.", 
-      imageSrc: PengamatIntrovertImage 
+    {
+      name: "Pengamat Introvert",
+      desc: "Praktis, teliti, dan mengandalkan fakta nyata.",
+      imageSrc: PengamatIntrovertImage,
     },
-    { 
-      name: "Pengamat Extrovert", 
-      desc: "Energik, spontan, dan suka menikmati momen saat ini.", 
-      imageSrc: PengamatExtrovertImage 
+    {
+      name: "Pengamat Extrovert",
+      desc: "Energik, spontan, dan suka menikmati momen saat ini.",
+      imageSrc: PengamatExtrovertImage,
     },
-    { 
-      name: "Perasa Introvert", 
-      desc: "Penuh empati, peduli, dan setia pada nilai-nilai pribadi.", 
-      imageSrc: PerasaIntrovertImage 
+    {
+      name: "Perasa Introvert",
+      desc: "Penuh empati, peduli, dan setia pada nilai-nilai pribadi.",
+      imageSrc: PerasaIntrovertImage,
     },
-    { 
-      name: "Perasa Extrovert", 
-      desc: "Karismatik, inspiratif, dan mudah bergaul dengan orang lain.", 
-      imageSrc: PerasaExtrovertImage 
+    {
+      name: "Perasa Extrovert",
+      desc: "Karismatik, inspiratif, dan mudah bergaul dengan orang lain.",
+      imageSrc: PerasaExtrovertImage,
     },
-    { 
-      name: "Pemimpi Introvert", 
-      desc: "Idealis, kreatif, dan mencari makna mendalam dalam hidup.", 
-      imageSrc: PemimpiIntrovertImage 
+    {
+      name: "Pemimpi Introvert",
+      desc: "Idealis, kreatif, dan mencari makna mendalam dalam hidup.",
+      imageSrc: PemimpiIntrovertImage,
     },
-    { 
-      name: "Pemimpi Extrovert", 
-      desc: "Inovatif, antusias, dan pandai menghubungkan ide-ide.", 
-      imageSrc: PemimpiExtrovertImage 
+    {
+      name: "Pemimpi Extrovert",
+      desc: "Inovatif, antusias, dan pandai menghubungkan ide-ide.",
+      imageSrc: PemimpiExtrovertImage,
     },
-    { 
-      name: "Penggerak", 
-      desc: "Adaptif, pemecah masalah, dan berorientasi pada tindakan.", 
-      imageSrc: PenggerakImage 
+    {
+      name: "Penggerak",
+      desc: "Adaptif, pemecah masalah, dan berorientasi pada tindakan.",
+      imageSrc: PenggerakImage,
     },
   ]
 
@@ -90,14 +91,17 @@ export default function Home() {
     {
       name: "Budi Santoso",
       text: "Saintara sangat membantu saya dalam mengenal diri saya lebih lanjut.",
+      image: PriaTestimoniImage,
     },
     {
       name: "Meri",
       text: "Memberikan dampak yang signifikan dalam hidup saya sehingga membuka jalan baru.",
+      image: WanitaTestimoniImage,
     },
     {
       name: "Lastri",
       text: "Terimakasih Saintara saya bisa tahu karakter asli saya dan menjalani hidup lebih baik.",
+      image: WanitaTestimoniImage,
     },
   ]
 
@@ -108,17 +112,9 @@ export default function Home() {
       {/* Hero Section */}
       <section id="hero" className="relative min-h-screen bg-white overflow-hidden pt-20 lg:pt-32">
         <div className="absolute inset-0">
-            <Image
-              src={LandingPageImage} 
-              alt="Background Saintara" 
-              layout="fill" 
-              objectFit="cover"
-              quality={30} 
-              className="opacity-60" 
-            />
-          </div>        
-          <div className="relative max-w-screen-xl mx-auto px-4 py-20 lg:py-28 grid lg:grid-cols-2 gap-12 items-center">
-          
+          <Image src={LandingPageImage} alt="Background Saintara" layout="fill" objectFit="cover" quality={30} className="opacity-60" />
+        </div>
+        <div className="relative max-w-screen-xl mx-auto px-4 py-20 lg:py-28 grid lg:grid-cols-2 gap-12 items-center">
           <div className="text-center lg:text-left" data-aos="fade-right">
             <h1 className="font-poppins text-4xl md:text-5xl lg:text-6xl font-extrabold text-saintara-black leading-tight">
               Kenali <span className="text-saintara-yellow">Karakter Alami</span> dan Potensi Mendalam Anda
@@ -133,10 +129,10 @@ export default function Home() {
               </Link>
             </div>
           </div>
-          
+
           <div className="hidden lg:block" data-aos="fade-left" data-aos-delay="200">
-            <div className="w-full h-96 bg-gray-200 rounded-2xl shadow-2xl flex items-center justify-center">
-              <span className="text-gray-500">Hero Image</span>
+            <div className="w-full h-96 bg-gray-100 rounded-2xl shadow-2xl flex items-center justify-center">
+              <Image src={arrow} alt="Yellow arrow pointing right centered on a light circular background, indicating forward action; placed in the middle of a soft gray rounded card to invite users to explore further" width={400} height={400} className="object-contain" />
             </div>
           </div>
         </div>
@@ -208,27 +204,26 @@ export default function Home() {
               Setiap individu unik. Kenali tipe karakter alami Anda dan orang-orang di sekitar Anda.
             </p>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {characterTypes.map((char, index) => (
               <div key={index} className="group relative overflow-hidden rounded-xl shadow-lg h-80" data-aos="zoom-in" data-aos-delay={index * 100}>
-                
-                <div className="absolute inset-0 w-full h-full"> 
+                <div className="absolute inset-0 w-full h-full">
                   <Image
                     src={char.imageSrc} // Menggunakan sumber gambar dari data
-                    alt={`Ilustrasi karakter ${char.name}`} 
-                    layout="fill" 
+                    alt={`Ilustrasi karakter ${char.name}`}
+                    layout="fill"
                     objectFit="cover" // Memastikan gambar menutupi kartu
                     className="transition-transform duration-500 group-hover:scale-110" // Efek zoom pada hover
                   />
                 </div>
-                
+
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                
+
                 <div className="absolute bottom-0 left-0 p-6 z=10">
                   <h3 className="text-white text-2xl font-bold font-poppins">{char.name}</h3>
                 </div>
-                
+
                 <div className="absolute inset-0 bg-saintara-black/90 flex flex-col justify-center items-center p-6 text-center text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20">
                   <p className="mb-4">{char.desc}</p>
                   <Link href="/dashboard/articles" className="px-6 py-2 border-2 border-white rounded-full hover:bg-white hover:text-saintara-black transition-colors" aria-label={`Learn more about ${char.name}`}>
@@ -256,7 +251,13 @@ export default function Home() {
             {testimonials.map((testimonial, index) => (
               <div key={index} className="bg-white p-6 rounded-2xl shadow-lg flex items-center space-x-6" data-aos="fade-up" data-aos-delay={200 + index * 100}>
                 <div className="flex-shrink-0">
-                  <div className="w-20 h-20 rounded-full bg-gray-200" />
+                  <Image
+                    src={testimonial.image} // Ambil gambar dari array
+                    alt={`Foto profil ${testimonial.name}`} // Penting untuk aksesibilitas
+                    width={80} // Sesuai dengan Tailwind 'w-20' (20 * 4px = 80px)
+                    height={80} // Sesuai dengan Tailwind 'h-20' (20 * 4px = 80px)
+                    className="rounded-full object-cover" // 'object-cover' agar gambar tidak gepeng
+                  />
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-saintara-black font-poppins">{testimonial.name}</h3>
@@ -293,8 +294,7 @@ export default function Home() {
                   35 Atribut Lengkap
                 </li>
                 <li className="flex items-center">
-                  <HiCheckCircle className="w-5 h-5 text-saintara-yellow mr-2" />
-                  6 Framework Analisis
+                  <HiCheckCircle className="w-5 h-5 text-saintara-yellow mr-2" />6 Framework Analisis
                 </li>
                 <li className="flex items-center">
                   <HiCheckCircle className="w-5 h-5 text-saintara-yellow mr-2" />
@@ -302,7 +302,11 @@ export default function Home() {
                 </li>
               </ul>
               <div className="mt-8 space-y-2">
-                <Link href="/products/personal" className="block w-full text-center text-saintara-yellow border-2 border-saintara-yellow hover:bg-saintara-yellow hover:text-white font-semibold rounded-lg text-base px-8 py-3 transition-colors duration-300" aria-label="Learn more about personal package">
+                <Link
+                  href="/products/personal"
+                  className="block w-full text-center text-saintara-yellow border-2 border-saintara-yellow hover:bg-saintara-yellow hover:text-white font-semibold rounded-lg text-base px-8 py-3 transition-colors duration-300"
+                  aria-label="Learn more about personal package"
+                >
                   Pelajari Lebih Lanjut
                 </Link>
                 <Link href="/register?product=personal" className="block w-full text-center text-saintara-black border-2 border-saintara-black hover:bg-saintara-black hover:text-white font-semibold rounded-lg text-base px-8 py-3 transition-colors duration-300" aria-label="Choose individual package">
@@ -334,10 +338,18 @@ export default function Home() {
                 </li>
               </ul>
               <div className="mt-8 space-y-2">
-                <Link href="/products/organization" className="block w-full text-center text-saintara-yellow border-2 border-saintara-yellow hover:bg-saintara-yellow hover:text-white font-semibold rounded-lg text-base px-8 py-3 transition-colors duration-300" aria-label="Learn more about organization package">
+                <Link
+                  href="/products/organization"
+                  className="block w-full text-center text-saintara-yellow border-2 border-saintara-yellow hover:bg-saintara-yellow hover:text-white font-semibold rounded-lg text-base px-8 py-3 transition-colors duration-300"
+                  aria-label="Learn more about organization package"
+                >
                   Pelajari Lebih Lanjut
                 </Link>
-                <Link href="/register?product=organization" className="block w-full text-center text-saintara-black border-2 border-saintara-black hover:bg-saintara-black hover:text-white font-semibold rounded-lg text-base px-8 py-3 transition-colors duration-300" aria-label="Contact sales for organization package">
+                <Link
+                  href="/register?product=organization"
+                  className="block w-full text-center text-saintara-black border-2 border-saintara-black hover:bg-saintara-black hover:text-white font-semibold rounded-lg text-base px-8 py-3 transition-colors duration-300"
+                  aria-label="Contact sales for organization package"
+                >
                   Kontak Sales
                 </Link>
               </div>
@@ -369,7 +381,11 @@ export default function Home() {
                 <Link href="/products/school" className="block w-full text-center text-saintara-yellow border-2 border-saintara-yellow hover:bg-saintara-yellow hover:text-white font-semibold rounded-lg text-base px-8 py-3 transition-colors duration-300" aria-label="Learn more about school package">
                   Pelajari Lebih Lanjut
                 </Link>
-                <Link href="/register?product=school" className="block w-full text-center text-saintara-black border-2 border-saintara-black hover:bg-saintara-black hover:text-white font-semibold rounded-lg text-base px-8 py-3 transition-colors duration-300" aria-label="Contact sales for school package">
+                <Link
+                  href="/register?product=school"
+                  className="block w-full text-center text-saintara-black border-2 border-saintara-black hover:bg-saintara-black hover:text-white font-semibold rounded-lg text-base px-8 py-3 transition-colors duration-300"
+                  aria-label="Contact sales for school package"
+                >
                   Kontak Sales
                 </Link>
               </div>

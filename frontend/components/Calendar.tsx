@@ -12,24 +12,14 @@ type CalendarEvent = {
 }
 
 // --- Mock Data (Data Palsu) ---
-// (Data ini tetap sama)
-const MOCK_EVENTS: CalendarEvent[] = [
-  { id: 1, date: "2025-11-06", title: "Marty", color: "green", icon: "🦓" },
-  { id: 2, date: "2025-11-09", title: "King Julien", color: "yellow", icon: "👑" },
-  { id: 3, date: "2025-11-09", title: "Kowalski", color: "blue", icon: "🐧" },
-  { id: 4, date: "2025-11-14", title: "Mort", color: "yellow", icon: "🌻" },
-  { id: 5, date: "2025-11-19", title: "Private", color: "blue", icon: "🎉" },
-  { id: 6, date: "2025-11-04", title: "Event 1", color: "red", icon: "🍓" },
-  { id: 7, date: "2025-11-04", title: "Event 2", color: "blue", icon: "🧊" },
-  { id: 8, date: "2025-11-04", title: "Event 3", color: "green", icon: "🐧" },
-]
+// (Sesuai kode Anda, ini dibiarkan kosong)
+const MOCK_EVENTS: CalendarEvent[] = []
 
 // --- Konstanta ---
 const MONTH_NAMES = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"]
 const DAYS_OF_WEEK_FULL = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"]
 
 // --- Fungsi Helper untuk Styling ---
-// (Fungsi-fungsi ini tetap sama, karena event masih perlu dibedakan)
 const getEventColorClasses = (color: CalendarEvent["color"]) => {
   switch (color) {
     case "blue":
@@ -80,7 +70,6 @@ export default function Calendar() {
   }
 
   // --- Logika Inti untuk Membangun Grid 42 Hari ---
-  // (Logika ini tetap sama, hanya tampilan yang berubah)
   const buildCalendarGrid = () => {
     const firstDayOfMonth = new Date(year, month, 1).getDay() // 0-6
     const daysInMonth = new Date(year, month + 1, 0).getDate()
@@ -144,51 +133,52 @@ export default function Calendar() {
 
   // --- JSX (Render) ---
   return (
-    // PERUBAHAN: Menambahkan font-poppins dan shadow-lg, mengganti font-sans
-    <div className="w-full max-w-6xl mx-auto bg-white border border-gray-200 rounded-xl shadow-lg p-6 font-poppins">
-      {/* Header: Navigasi & Tombol Aksi */}
-      <div className="flex items-center justify-between mb-5">
-        {/* Sisi Kiri: Kontrol Bulan & Acara */}
-        <div className="flex items-center gap-4">
-          {/* PERUBAHAN: Menambahkan font-bold dan text-saintara-black */}
-          <h2 className="text-2xl font-bold text-saintara-black w-36">{MONTH_NAMES[month]}</h2>
+    <div className="w-full max-w-7xl mx-auto bg-white border border-gray-200 rounded-xl shadow-lg p-6 font-poppins">
+      <h1 className="text-6xl font-semibold mt-8 mb-6 text-center text-saintara-yellow">Kalender Agenda</h1>
+      <hr />
 
-          {/* PERUBAHAN: Menyesuaikan gaya tombol 'Today' (gaya sekunder) */}
-          <button onClick={goToToday} className="px-4 py-2 text-sm font-semibold text-saintara-black border-2 border-saintara-black rounded-lg hover:bg-saintara-black hover:text-white transition-colors duration-300">
-            Today
-          </button>
+      {/* ===== HEADER (PERUBAHAN TATA LETAK DI SINI) ===== */}
+      <div className="flex items-center justify-between mb-5 mt-4">
+        {/* Sisi Kiri (Placeholder untuk alignment) */}
+        <div className="flex-1">{/* Dibiarkan kosong agar item tengah terpusat */}</div>
 
-          {/* PERUBAHAN: Menyesuaikan gaya tombol 'Add Event' (gaya primer) */}
-          <button className="px-4 py-2 text-sm font-semibold text-white bg-saintara-yellow rounded-lg hover:bg-saintara-black focus:ring-4 focus:ring-yellow-300 transition-all duration-300 transform hover:scale-105">+ Add Event</button>
-        </div>
-
-        {/* Sisi Kanan: Kontrol Tahun */}
-        <div className="flex items-center gap-2">
-          {/* PERUBAHAN: Menambahkan aksen hover saintara-yellow */}
+        {/* Sisi Tengah: Navigasi Bulan & Tahun */}
+        <div className="flex-1 flex justify-center items-center gap-2 my-5">
+          {/* Tombol 'Prev' */}
           <button onClick={handlePrevMonth} className="p-2 rounded-full text-gray-600 hover:bg-saintara-yellow/20 hover:text-saintara-black transition-colors" aria-label="Bulan sebelumnya">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
           </button>
 
-          {/* PERUBAHAN: Menambahkan text-saintara-black */}
-          <span className="text-2xl font-bold text-saintara-black w-24 text-center">{year}</span>
+          {/* Teks Bulan dan Tahun */}
+          <span className="text-2xl font-bold text-saintara-black w-auto px-4 text-center" style={{ minWidth: "200px" }}>
+            {MONTH_NAMES[month]} {year}
+          </span>
 
-          {/* PERUBAHAN: Menambahkan aksen hover saintara-yellow */}
+          {/* Tombol 'Next' */}
           <button onClick={handleNextMonth} className="p-2 rounded-full text-gray-600 hover:bg-saintara-yellow/20 hover:text-saintara-black transition-colors" aria-label="Bulan berikutnya">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
             </svg>
           </button>
         </div>
+
+        {/* Sisi Kanan: Tombol Aksi (Today & Add Event) */}
+        <div className="flex-1 flex justify-end items-center gap-4">
+          <button onClick={goToToday} className="px-4 py-2 text-sm font-semibold text-saintara-black border-2 border-saintara-black rounded-lg hover:bg-saintara-black hover:text-white transition-colors duration-300">
+            Today
+          </button>
+          <button className="px-4 py-2 text-sm font-semibold text-white bg-saintara-yellow rounded-lg hover:bg-saintara-black focus:ring-4 focus:ring-yellow-300 transition-all duration-300 transform hover:scale-105">+ Add Event</button>
+        </div>
       </div>
+      {/* ===== AKHIR HEADER ===== */}
 
       {/* Grid Kalender */}
 
       {/* Header Nama Hari */}
       <div className="grid grid-cols-7 gap-1">
         {DAYS_OF_WEEK_FULL.map(day => (
-          // PERUBAHAN: Mengganti text-gray-500 menjadi 600 dan menebalkan sedikit
           <div key={day} className="text-left font-semibold text-sm text-gray-600 pt-2 pb-3 pl-2">
             {day}
           </div>
@@ -204,22 +194,19 @@ export default function Calendar() {
           return (
             <div
               key={dateStr}
-              // PERUBAHAN: Mengganti rounded-md menjadi rounded-lg
               className={`h-32 p-2 border ${highlightClass} rounded-lg flex flex-col items-start overflow-hidden transition-colors
-                          ${isCurrentMonth ? "bg-white hover:bg-gray-50" : "bg-gray-50"}`}
+                            ${isCurrentMonth ? "bg-white hover:bg-gray-50" : "bg-gray-50"}`}
             >
               {/* Angka Tanggal */}
               <span
-                // PERUBAHAN: Mengganti penanda 'isToday' dari merah ke saintara-yellow
                 className={`text-sm font-semibold mb-1.5
-                                ${isCurrentMonth ? "text-saintara-black" : "text-gray-400"}
-                                ${isToday ? "bg-saintara-yellow text-saintara-black rounded-full h-7 w-7 flex items-center justify-center" : "p-1"}`}
+                                  ${isCurrentMonth ? "text-saintara-black" : "text-gray-400"}
+                                  ${isToday ? "bg-saintara-yellow text-saintara-black rounded-full h-7 w-7 flex items-center justify-center" : "p-1"}`}
               >
                 {day}
               </span>
 
               {/* Container untuk Acara/Event */}
-              {/* PERUBAHAN: Mengganti rounded menjadi rounded-md untuk event pills */}
               <div className="flex flex-col gap-1 w-full overflow-y-auto text-xs pr-1">
                 {events.map(event => (
                   <div key={event.id} title={event.title} className={`p-1.5 rounded-md ${getEventColorClasses(event.color)} truncate`}>
