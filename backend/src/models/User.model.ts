@@ -11,7 +11,7 @@ export interface User {
   email: string;
   name: string;
   phone?: string;
-  password_hash: string;
+  password: string;
   role: 'superadmin' | 'institution_admin' | 'admin' | 'agent' | 'user';
   institution_id?: number;
   managed_by_admin_id?: number;
@@ -59,20 +59,20 @@ export class UserModel {
     email: string;
     name: string;
     phone?: string;
-    password_hash: string;
+    password: string;
     role?: string;
     institution_id?: number;
     managed_by_admin_id?: number;
   }): Promise<User> {
     const result = await this.pool.query(
-      `INSERT INTO users (email, name, phone, password_hash, role, institution_id, managed_by_admin_id)
+      `INSERT INTO users (email, name, phone, password, role, institution_id, managed_by_admin_id)
        VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING *`,
       [
         userData.email,
         userData.name,
         userData.phone,
-        userData.password_hash,
+        userData.password,
         userData.role || 'user',
         userData.institution_id,
         userData.managed_by_admin_id
