@@ -19,31 +19,38 @@ const nextConfig = {
     ],
   },
   webpack: (config, { isServer, nextRuntime }) => {
-    if (isServer) {
-      // Only mark as external for Node.js runtime, not edge runtime
-      if (nextRuntime === 'nodejs') {
-        // Mark packages as external to prevent bundling issues
-        const externals = [
-          '@prisma/instrumentation',
-          '@opentelemetry/instrumentation',
-          '@opentelemetry/api',
-          'require-in-the-middle',
-        ];
+    if (isServer && nextRuntime === 'nodejs') {
+      // Mark packages as external to prevent bundling issues
+      const externals = [
+        '@prisma/instrumentation',
+        '@opentelemetry/instrumentation',
+        '@opentelemetry/api',
+        'require-in-the-middle',
+      ];
 
-        // Handle externals properly for both function and array formats
-        if (typeof config.externals === 'function') {
-          const originalExternals = config.externals;
-          config.externals = async (context, callback) => {
-            const request = context.request;
-            if (externals.some(ext => request.startsWith(ext))) {
-              return callback(null, `commonjs ${request}`);
-            }
+      // Handle externals properly for both function and array formats
+      if (typeof config.externals === 'function') {
+        const originalExternals = config.externals;
+        config.externals = async (context, callback) => {
+          const request = context.request || context;
+
+          // Only mark specific packages as external, not all imports
+          if (typeof request === 'string' && externals.some(ext => request === ext || request.startsWith(`${ext}/`))) {
+            return callback(null, `commonjs ${request}`);
+          }
+
+          // Let Next.js handle everything else
+          if (originalExternals) {
             return originalExternals(context, callback);
-          };
-        } else {
-          config.externals = config.externals || [];
-          config.externals.push(...externals);
+          }
+          return callback();
+        };
+      } else {
+        // For array format, just append our externals
+        if (!Array.isArray(config.externals)) {
+          config.externals = [];
         }
+        config.externals.push(...externals.map(ext => new RegExp(`^${ext}(/.*)?$`)));
       }
 
       // Ignore OpenTelemetry instrumentation warnings
