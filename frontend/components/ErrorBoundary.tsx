@@ -1,4 +1,5 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
+import * as Sentry from '@sentry/nextjs';
 
 interface Props {
   children: ReactNode;
@@ -42,8 +43,25 @@ class ErrorBoundary extends Component<Props, State> {
       errorInfo,
     });
 
-    // TODO: Send error to logging service
-    // Example: logErrorToService(error, errorInfo);
+    // Send error to Sentry
+    Sentry.withScope((scope) => {
+      // Add error info as context
+      scope.setContext('errorInfo', {
+        componentStack: errorInfo.componentStack,
+      });
+
+      // Add additional context
+      scope.setTag('error_boundary', 'true');
+      scope.setLevel('error');
+
+      // Capture the error
+      Sentry.captureException(error);
+    });
+
+    // Log successful error reporting
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Error has been reported to Sentry');
+    }
   }
 
   handleReset = (): void => {
