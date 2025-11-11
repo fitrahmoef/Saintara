@@ -543,6 +543,141 @@ class EmailService {
   }
 
   /**
+   * Send partnership application notification to admin
+   */
+  async sendPartnershipNotificationEmail(
+    applicationData: {
+      name: string;
+      email: string;
+      phone: string;
+      organization?: string;
+      message?: string;
+      experience?: string;
+      social_media?: string;
+      application_id: number;
+    }
+  ): Promise<EmailSendResult> {
+    const adminEmail = process.env.ADMIN_EMAIL || 'admin@saintara.com';
+    const reviewUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/admin/approvals`;
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background-color: #FEC53D; padding: 20px; text-align: center; }
+          .header h1 { color: #000; margin: 0; }
+          .content { background-color: #f9f9f9; padding: 30px; }
+          .info-box {
+            background: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #FEC53D;
+          }
+          .info-row {
+            margin: 12px 0;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #eee;
+          }
+          .info-row:last-child { border-bottom: none; }
+          .label { font-weight: bold; color: #666; display: inline-block; width: 140px; }
+          .value { color: #333; }
+          .button {
+            display: inline-block;
+            padding: 12px 30px;
+            background-color: #FEC53D;
+            color: #000;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 20px 0;
+          }
+          .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>🤝 New Partnership Application</h1>
+          </div>
+          <div class="content">
+            <h2>New Partnership Request Received</h2>
+            <p>A new partnership application has been submitted. Please review the details below:</p>
+
+            <div class="info-box">
+              <div class="info-row">
+                <span class="label">Application ID:</span>
+                <span class="value">#${applicationData.application_id}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Name:</span>
+                <span class="value">${applicationData.name}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Email:</span>
+                <span class="value">${applicationData.email}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Phone:</span>
+                <span class="value">${applicationData.phone}</span>
+              </div>
+              ${applicationData.organization ? `
+              <div class="info-row">
+                <span class="label">Organization:</span>
+                <span class="value">${applicationData.organization}</span>
+              </div>
+              ` : ''}
+              ${applicationData.experience ? `
+              <div class="info-row">
+                <span class="label">Experience:</span>
+                <span class="value">${applicationData.experience}</span>
+              </div>
+              ` : ''}
+              ${applicationData.social_media ? `
+              <div class="info-row">
+                <span class="label">Social Media:</span>
+                <span class="value">${applicationData.social_media}</span>
+              </div>
+              ` : ''}
+              ${applicationData.message ? `
+              <div class="info-row">
+                <span class="label">Message:</span>
+                <div class="value" style="margin-top: 8px; white-space: pre-wrap;">${applicationData.message}</div>
+              </div>
+              ` : ''}
+            </div>
+
+            <p style="text-align: center;">
+              <a href="${reviewUrl}" class="button">Review Application</a>
+            </p>
+
+            <p style="color: #666; font-size: 14px;">
+              <strong>Next Steps:</strong><br>
+              1. Review the application details<br>
+              2. Contact the applicant if needed<br>
+              3. Approve or reject the application from the admin panel
+            </p>
+          </div>
+          <div class="footer">
+            <p>© ${new Date().getFullYear()} Saintara. All rights reserved.</p>
+            <p>This is an automated notification from the Saintara partnership system.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    return this.sendEmail({
+      to: adminEmail,
+      subject: `🤝 New Partnership Application from ${applicationData.name}`,
+      html,
+    });
+  }
+
+  /**
    * Send refund confirmation email
    */
   async sendRefundConfirmationEmail(

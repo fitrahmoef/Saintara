@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 import pool from '../config/database';
 import logger from '../config/logger';
+import { emailService } from '../services/email.service';
 
 /**
  * Get all partnership content (grouped by section)
@@ -274,7 +275,24 @@ export const submitPartnershipApplication = async (req: Request, res: Response) 
 
     logger.info(`Partnership application submitted: ${email}`);
 
-    // TODO: Send email notification to admin
+    // Send email notification to admin
+    try {
+      await emailService.sendPartnershipNotificationEmail({
+        name,
+        email,
+        phone,
+        organization,
+        message,
+        experience,
+        social_media,
+        application_id: result.rows[0].id,
+      });
+      logger.info(`Partnership notification email sent for application ${result.rows[0].id}`);
+    } catch (emailError) {
+      // Log error but don't fail the request
+      logger.error('Failed to send partnership notification email:', emailError);
+      // Application is still saved, just email notification failed
+    }
 
     res.status(201).json({
       status: 'success',

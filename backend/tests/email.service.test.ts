@@ -118,4 +118,95 @@ describe('EmailService', () => {
       expect(stripped).toBe('Hello World');
     });
   });
+
+  describe('Partnership Notification Email', () => {
+    it('should send partnership notification email to admin', async () => {
+      const applicationData = {
+        name: 'John Doe',
+        email: 'john@example.com',
+        phone: '+1234567890',
+        organization: 'Test Organization',
+        message: 'I would like to become a partner',
+        experience: '5 years',
+        social_media: '@johndoe',
+        application_id: 123,
+      };
+
+      const result = await emailService.sendPartnershipNotificationEmail(applicationData);
+
+      // If email service is not configured, should return failure
+      if (!emailService.isReady()) {
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('Email service not configured');
+      } else {
+        // If configured, should return success
+        expect(result.success).toBe(true);
+        expect(result.messageId).toBeDefined();
+      }
+    });
+
+    it('should include all application details in email', async () => {
+      const applicationData = {
+        name: 'Jane Smith',
+        email: 'jane@example.com',
+        phone: '+9876543210',
+        organization: 'ABC Corp',
+        message: 'Looking forward to partnership',
+        experience: '3 years',
+        social_media: '@janesmith',
+        application_id: 456,
+      };
+
+      // Mock sendEmail to capture the email content
+      const originalSendEmail = emailService.sendEmail;
+      let capturedEmail: any = null;
+
+      emailService.sendEmail = jest.fn().mockImplementation(async (options) => {
+        capturedEmail = options;
+        return { success: true, messageId: 'test-message-id' };
+      });
+
+      await emailService.sendPartnershipNotificationEmail(applicationData);
+
+      expect(capturedEmail).toBeTruthy();
+      expect(capturedEmail.html).toContain(applicationData.name);
+      expect(capturedEmail.html).toContain(applicationData.email);
+      expect(capturedEmail.html).toContain(applicationData.phone);
+      expect(capturedEmail.html).toContain(applicationData.organization);
+      expect(capturedEmail.html).toContain(applicationData.experience);
+      expect(capturedEmail.html).toContain(applicationData.social_media);
+      expect(capturedEmail.html).toContain(String(applicationData.application_id));
+
+      // Restore original method
+      emailService.sendEmail = originalSendEmail;
+    });
+
+    it('should handle optional fields in partnership email', async () => {
+      const applicationData = {
+        name: 'Basic User',
+        email: 'basic@example.com',
+        phone: '+1111111111',
+        application_id: 789,
+      };
+
+      // Mock sendEmail
+      const originalSendEmail = emailService.sendEmail;
+      let capturedEmail: any = null;
+
+      emailService.sendEmail = jest.fn().mockImplementation(async (options) => {
+        capturedEmail = options;
+        return { success: true, messageId: 'test-message-id' };
+      });
+
+      await emailService.sendPartnershipNotificationEmail(applicationData);
+
+      expect(capturedEmail).toBeTruthy();
+      expect(capturedEmail.html).toContain(applicationData.name);
+      expect(capturedEmail.html).toContain(applicationData.email);
+      expect(capturedEmail.html).toContain(applicationData.phone);
+
+      // Restore original method
+      emailService.sendEmail = originalSendEmail;
+    });
+  });
 });
